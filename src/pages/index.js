@@ -1,4 +1,3 @@
-// pages/index.js
 import { useEffect, useState } from 'react';
 
 export default function Home() {
@@ -8,8 +7,8 @@ export default function Home() {
 
   useEffect(() => {
     fetch('/api/diary')
-      .then(response => response.json())
-      .then(data => setDiaries(data));
+      .then((response) => response.json())
+      .then((data) => setDiaries(data));
   }, []);
 
   const handleSubmit = async (e) => {
@@ -39,6 +38,7 @@ export default function Home() {
           required
         />
         <textarea
+          className="textarea-notebook"
           placeholder="Content"
           value={content}
           onChange={(e) => setContent(e.target.value)}
@@ -48,7 +48,7 @@ export default function Home() {
       </form>
       <ul>
         {diaries.map((diary, index) => (
-          <li key={index}>
+          <li key={index} className="diary-item">
             <h2>{diary.title}</h2>
             <p>{diary.content}</p>
             <small>{new Date(diary.date).toLocaleString()}</small>
