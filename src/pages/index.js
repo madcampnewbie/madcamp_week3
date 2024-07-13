@@ -1,5 +1,4 @@
-import { useSession, signOut } from 'next-auth/react';
-import Link from 'next/link';
+import { useSession, signOut, signIn } from 'next-auth/react';
 import { useEffect, useState } from 'react';
 
 export default function Home() {
@@ -10,11 +9,25 @@ export default function Home() {
 
   useEffect(() => {
     if (status === 'authenticated') {
-      fetch('/api/diary')
-        .then((response) => response.json())
-        .then((data) => setDiaries(data));
+      fetchDiaries();
     }
   }, [status]);
+
+  const fetchDiaries = async () => {
+    try {
+      const response = await fetch('/api/diary');
+      const data = await response.json();
+      if (Array.isArray(data)) {
+        setDiaries(data);
+      } else {
+        console.error('API response is not an array:', data);
+        setDiaries([]);
+      }
+    } catch (error) {
+      console.error('Error fetching diaries:', error);
+      setDiaries([]);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -31,43 +44,80 @@ export default function Home() {
     setContent('');
   };
 
+  useEffect(() => {
+    const inputs = document.querySelectorAll('.dynamic-underline');
+    inputs.forEach(input => {
+      const underline = document.createElement('div');
+      underline.className = 'underline';
+      input.parentNode.insertBefore(underline, input.nextSibling);
+
+      const updateUnderlineWidth = () => {
+        const inputLength = input.value.length;
+        underline.style.width = `${inputLength + 1}ch`;
+      };
+
+      input.addEventListener('input', updateUnderlineWidth);
+      input.addEventListener('focus', updateUnderlineWidth);
+      input.addEventListener('blur', () => {
+        if (input.value.length === 0) {
+          underline.style.width = '0';
+        }
+      });
+
+      // Initial call to set the underline width correctly
+      updateUnderlineWidth();
+    });
+  }, []);
+
   if (status === 'loading') {
     return <p>Loading...</p>;
   }
 
   return (
-    <div>
-      <h1>Diary App</h1>
-      {status === 'authenticated' && (
-        <>
-          <form onSubmit={handleSubmit}>
-            <input
-              type="text"
-              placeholder="Title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              required
-            />
-            <textarea
-              className="textarea-notebook"
-              placeholder="Content"
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              required
-            ></textarea>
-            <button type="submit">Add Diary</button>
-          </form>
-          <ul>
-            {diaries.map((diary, index) => (
-              <li key={index} className="diary-item">
-                <h2>{diary.title}</h2>
-                <p>{diary.content}</p>
-                <small>{new Date(diary.date).toLocaleString()}</small>
-              </li>
-            ))}
-          </ul>
-        </>
-      )}
+    <div className="container">
+      <div className="content">
+        <h1>Diary&Music</h1>
+        {status === 'authenticated' && (
+          <>
+            <form onSubmit={handleSubmit}>
+              <input
+                type="text"
+                className="title-input dynamic-underline"
+                placeholder="Title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                required
+              />
+              <textarea
+                className="content-textarea"
+                placeholder="Content"
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                required
+              ></textarea>
+              <button type="submit">Add Diary</button>
+            </form>
+            <ul>
+              {diaries.length > 0 ? (
+                diaries.map((diary, index) => (
+                  <li key={index} className="diary-item">
+                    <h2>{diary.title}</h2>
+                    <p>{diary.content}</p>
+                    <small>{new Date(diary.date).toLocaleString()}</small>
+                  </li>
+                ))
+              ) : (
+                <p>No diaries available.</p>
+              )}
+            </ul>
+          </>
+        )}
+        {status !== 'authenticated' && (
+          <p>
+            Please <a href="#" onClick={() => signIn()}>sign in</a> to view and add diaries.
+          </p>
+        )}
+      </div>
     </div>
   );
 }

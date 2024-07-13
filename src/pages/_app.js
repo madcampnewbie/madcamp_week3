@@ -6,7 +6,11 @@ function MyApp({ Component, pageProps: { session, ...pageProps } }) {
   return (
     <SessionProvider session={session}>
       <Navbar />
-      <Component {...pageProps} />
+      <div className="container">
+        <div className="content">
+          <Component {...pageProps} />
+        </div>
+      </div>
     </SessionProvider>
   );
 }

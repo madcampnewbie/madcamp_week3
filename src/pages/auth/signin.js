@@ -24,17 +24,17 @@ export default function SignIn() {
   };
 
   return (
-    <div>
+    <div className="signin-container">
       <h1>Sign In</h1>
-      <form onSubmit={handleSubmit}>
+      <form className="signin-form" onSubmit={handleSubmit}>
         <label>
           Email
-          <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" required />
+          <input className="signin-input" value={email} onChange={(e) => setEmail(e.target.value)} type="email" required />
         </label>
         <br />
         <label>
           Password
-          <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" required />
+          <input className="signin-input" value={password} onChange={(e) => setPassword(e.target.value)} type="password" required />
         </label>
         <br />
         {error && <p style={{ color: 'red' }}>{error}</p>}

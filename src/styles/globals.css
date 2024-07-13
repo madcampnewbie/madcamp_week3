@@ -11,15 +11,64 @@ h1, h2 {
 
 form {
   margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Center the form elements horizontally */
 }
 
-input, textarea {
+input.title-input {
   display: block;
   margin-bottom: 10px;
-  padding: 10px 0;
+  padding: 5px 0;
   font-size: 16px;
   width: 100%;
-  max-width: 500px;
+  max-width: 250px;
+  border: none;
+  border-bottom: 2px solid #ccc; /* Add bottom border for underline */
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.3s;
+  background-color: transparent; /* Remove background color */
+  text-align: center; /* Center align text */
+}
+
+input.title-input:focus {
+  border-bottom-color: #000; /* Change color when focused */
+}
+
+textarea.content-textarea {
+  display: block;
+  margin: 10px auto; /* Center horizontally */
+  padding: 3px 20px; /* Increase padding */
+  font-size: 16px;
+  width: 100%;
+  max-width: 600px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.3s;
+  background: repeating-linear-gradient(
+    white,
+    white 29px, /* Adjust to move line down */
+    #ccc 30px
+  );
+  font-family: 'Lucida Console', Monaco, monospace;
+  line-height: 30px;
+  height: 400px;
+}
+
+textarea.content-textarea:focus {
+  border-color: #000;
+}
+
+input.signin-input, input.signup-input {
+  display: block;
+  margin: 0 auto 10px auto; /* Center horizontally */
+  padding: 10px 20px; /* Increase padding */
+  font-size: 16px;
+  width: 100%;
+  max-width: 300px;
   border: none;
   border-bottom: 2px solid #ccc;
   border-radius: 0;
@@ -28,8 +77,12 @@ input, textarea {
   transition: border-color 0.3s;
 }
 
-input:focus, textarea:focus {
-  border-bottom-color: #000;
+input.signin-input:focus {
+  border-bottom-color: #007bff;
+}
+
+input.signup-input:focus {
+  border-bottom-color: #1e7e34;
 }
 
 button {
@@ -52,15 +105,15 @@ ul {
 }
 
 .diary-item h2 {
-  color: #4A90E2; /* 제목 색상 변경 */
+  color: #4A90E2; /* Change title color */
 }
 
 .diary-item p {
-  color: #333; /* 내용 색상 변경 */
+  color: #333; /* Change content color */
 }
 
 .diary-item small {
-  color: #999; /* 날짜 색상 변경 */
+  color: #999; /* Change date color */
 }
 
 small {
@@ -69,20 +122,120 @@ small {
   color: #666;
 }
 
-/* 노트 스타일 */
+/* Navbar styling */
+.navbar {
+  width: 100%;
+  background-color: #fff;
+  color: #000;
+  padding: 1rem;
+  border-bottom: 1px solid #ccc;
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+/* Container for centering the content */
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh; /* Full viewport height */
+  padding-top: 20px; /* Optional: Add top padding to create space */
+}
+
+/* Style for the content */
+.content {
+  text-align: center;
+  max-width: 600px;
+  width: 100%;
+  padding: 20px;
+  background-color: #fff; /* Optional: Add background color */
+}
+
+/* Notebook style */
+.textarea-notebook-container {
+  display: flex;
+  justify-content: center; /* Center horizontally */
+  margin-top: 20px; /* Add top margin to push the container down */
+}
+
 .textarea-notebook {
   background: repeating-linear-gradient(
     white,
-    white 29px,
+    white 29px, /* Adjust to move line down */
     #ccc 30px
   );
   font-family: 'Lucida Console', Monaco, monospace;
   line-height: 30px;
-  padding: 10px;
-  border: 1px solid #ccc; /* 네모 프레임을 위한 테두리 추가 */
-  border-radius: 5px; /* 모서리를 둥글게 */
+  padding: 0px 10px 20px 0px; /* Add top and bottom padding */
+  border: 1px solid #ccc; /* Add border for the box */
+  border-radius: 5px; /* Round the corners */
   width: 100%;
-  max-width: 500px;
-  height: 300px;
+  max-width: 600px;
+  height: 500px;
   resize: none;
+}
+
+.underline {
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  height: 2px;
+  background-color: #ccc;
+  transition: width 0.3s, background-color 0.3s;
+}
+
+input:focus + .underline,
+textarea:focus + .underline {
+  background-color: #000;
+}
+
+/* Specific styles for Sign In form */
+.signin-container {
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.signin-form input {
+  border-bottom: 2px solid #9ecdff;
+}
+
+.signin-form input:focus {
+  border-bottom-color: #007bff;
+}
+
+.signin-form button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+}
+
+/* Specific styles for Sign Up form */
+.signup-container {
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #e9ecef;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.signup-form input {
+  border-bottom: 2px solid #a7e2b5;
+}
+
+.signup-form input:focus {
+  border-bottom-color: #1e7e34;
+}
+
+.signup-form button {
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 4px;
 }

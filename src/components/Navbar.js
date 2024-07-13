@@ -5,7 +5,7 @@ export default function Navbar() {
   const { data: session, status } = useSession();
 
   return (
-    <nav style={{ padding: '1rem', borderBottom: '1px solid #ccc' }}>
+    <nav className="navbar">
       <Link href="/" style={{ marginRight: '1rem' }}>
         Home
       </Link>
