@@ -1,20 +1,45 @@
-import { connectToDatabase } from '../../lib/mongodb';
+import { getToken } from 'next-auth/jwt';
+import clientPromise from '../../libs/mongodb';
 
-export default async function handler(req, res) {
-  const { db } = await connectToDatabase();
+const secret = process.env.NEXTAUTH_SECRET;
 
-  if (req.method === 'POST') {
+export default async (req, res) => {
+  const token = await getToken({ req, secret });
+  const client = await clientPromise;
+  const db = client.db();
+
+  if (!token) {
+    res.status(401).json({ message: 'Not authenticated' });
+    return;
+  }
+
+  if (req.method === 'GET') {
+    try {
+      const diaries = await db.collection('diaries').find({ userId: token.id }).toArray();
+      res.status(200).json(diaries);
+    } catch (error) {
+      res.status(500).json({ message: 'Failed to fetch diaries', error: error.message });
+    }
+  } else if (req.method === 'POST') {
     const { title, content } = req.body;
-    const result = await db.collection('diaries').insertOne({
+    if (!title || !content) {
+      res.status(400).json({ message: 'Title and content are required' });
+      return;
+    }
+    const newDiary = {
       title,
       content,
+      userId: token.id,
       date: new Date(),
-    });
-    res.status(201).json({ _id: result.insertedId, title, content, date: new Date() });
-  } else if (req.method === 'GET') {
-    const diaries = await db.collection('diaries').find({}).toArray();
-    res.status(200).json(diaries);
+    };
+    try {
+      const result = await db.collection('diaries').insertOne(newDiary);
+      const insertedDiary = await db.collection('diaries').findOne({ _id: result.insertedId });
+      res.status(201).json(insertedDiary); // 변경된 부분
+    } catch (error) {
+      res.status(500).json({ message: 'Failed to create diary', error: error.message });
+    }
   } else {
-    res.status(405).end(); // Method Not Allowed
+    res.status(405).json({ message: 'Method not allowed' });
   }
-}
+};
