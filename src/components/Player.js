@@ -1,24 +1,18 @@
 import { useEffect, useState } from "react";
 
-const Player = ({ token }) => {
+const Player = ({ token, playlist }) => {
   const [player, setPlayer] = useState(null);
   const [isPaused, setIsPaused] = useState(true);
   const [currentTrack, setCurrentTrack] = useState(null);
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
   const [deviceId, setDeviceId] = useState(null);
 
-  const playlist = [
-    'https://open.spotify.com/track/0zqGsExr8GxWqoaYaa78xU?si=ce8471ebc3964349',
-    'https://open.spotify.com/track/7Mmv4tVcaAAM0M9bn6h6zY?si=11842e5dc6414a75',
-    'https://open.spotify.com/track/11fB0pRXSdxOgoM8ity2D4?si=ffd0457455684b3f'
-  ];
-
   useEffect(() => {
     if (!token) {
       console.error('Token is not available');
       return;
     }
-  
+
     const loadSpotifyPlayer = () => {
       if (window.Spotify) {
         const spotifyPlayer = new window.Spotify.Player({
@@ -26,37 +20,36 @@ const Player = ({ token }) => {
           getOAuthToken: cb => { cb(token); },
           volume: 0.5,
         });
-  
+
         setPlayer(spotifyPlayer);
-  
+
         spotifyPlayer.addListener('ready', ({ device_id }) => {
           console.log('Ready with Device ID', device_id);
           setDeviceId(device_id);
-          playSong(playlist[currentTrackIndex], device_id);
         });
-  
+
         spotifyPlayer.addListener('not_ready', ({ device_id }) => {
           console.log('Device ID has gone offline', device_id);
         });
-  
+
         spotifyPlayer.addListener('player_state_changed', state => {
           if (state) {
             setCurrentTrack(state.track_window.current_track);
             setIsPaused(state.paused);
-  
+
             // If the track has ended, play the next track
             if (state.paused && state.position === 0 && state.track_window.previous_tracks.find(track => track.id === state.track_window.current_track.id)) {
               playNextTrack();
             }
           }
         });
-  
+
         spotifyPlayer.connect();
       } else {
         console.error('Spotify Player SDK not available');
       }
     };
-  
+
     if (typeof window !== 'undefined') {
       if (window.Spotify) {
         loadSpotifyPlayer();
@@ -65,13 +58,12 @@ const Player = ({ token }) => {
       }
     }
   }, [token]);
-  
 
   useEffect(() => {
-    if (player && deviceId) {
+    if (player && deviceId && playlist && playlist.length > 0) {
       playSong(playlist[currentTrackIndex], deviceId);
     }
-  }, [currentTrackIndex, player, deviceId]);
+  }, [currentTrackIndex, player, deviceId, playlist]);
 
   const playSong = async (spotifyUri, deviceId) => {
     try {

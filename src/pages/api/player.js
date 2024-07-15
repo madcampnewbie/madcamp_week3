@@ -12,6 +12,11 @@ export default async (req, res) => {
 
   const accessToken = token.accessToken;
 
+  if (!accessToken) {
+    res.status(401).json({ message: 'No access token available' });
+    return;
+  }
+
   if (req.method === 'PUT') {
     const { spotifyUri } = req.body;
 

@@ -59,7 +59,6 @@ export default NextAuth({
       }
 
       if (Date.now() < token.accessTokenExpires) {
-        console.log('Token still valid:', token);
         return token;
       }
 
@@ -70,7 +69,7 @@ export default NextAuth({
       session.user = token.user;
       session.accessToken = token.accessToken;
       session.error = token.error;
-      console.log('Session updated:', session);
+
       return session;
     },
     async signIn({ user, account, profile }) {

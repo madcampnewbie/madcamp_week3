@@ -1,13 +1,14 @@
 import { useSession, signIn, signOut } from 'next-auth/react';
 import { useEffect, useState } from 'react';
 import { fetchWeather } from '../libs/weather';
-
+import Player from '../components/Player';
 export default function Home() {
   const { data: session, status } = useSession();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [diaries, setDiaries] = useState([]);
   const [weather, setWeather] = useState(null); 
+  const [musicRecommendations, setMusicRecommendations] = useState([]);
 
   useEffect(() => {
     if (status === 'authenticated') {
@@ -36,6 +37,18 @@ export default function Home() {
     setDiaries([...diaries, newDiary]);
     setTitle('');
     setContent('');
+
+    // Fetch music recommendations
+    const recommendationRes = await fetch('/api/recommend', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ diary_entry: content, genre: 'hip-hop' })  // Modify genre as needed
+    });
+    const recommendations = await recommendationRes.json();
+
+    setMusicRecommendations(recommendations.map(rec => rec.spotify_link));
   };
 
   if (status === 'loading') {
@@ -88,6 +101,7 @@ export default function Home() {
                 </li>
               ))}
             </ul>
+            {musicRecommendations.length > 0 && <Player token={session?.accessToken} playlist={musicRecommendations} />}
           </>
         )}
         {status !== 'authenticated' && (
