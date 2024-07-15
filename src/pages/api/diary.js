@@ -21,7 +21,7 @@ export default async (req, res) => {
       res.status(500).json({ message: 'Failed to fetch diaries', error: error.message });
     }
   } else if (req.method === 'POST') {
-    const { title, content } = req.body;
+    const { title, content, weather } = req.body; // 날씨 데이터를 받도록 변경
     if (!title || !content) {
       res.status(400).json({ message: 'Title and content are required' });
       return;
@@ -29,13 +29,14 @@ export default async (req, res) => {
     const newDiary = {
       title,
       content,
+      weather, // 날씨 데이터를 포함
       userId: token.id,
       date: new Date(),
     };
     try {
       const result = await db.collection('diaries').insertOne(newDiary);
       const insertedDiary = await db.collection('diaries').findOne({ _id: result.insertedId });
-      res.status(201).json(insertedDiary); // 변경된 부분
+      res.status(201).json(insertedDiary);
     } catch (error) {
       res.status(500).json({ message: 'Failed to create diary', error: error.message });
     }
