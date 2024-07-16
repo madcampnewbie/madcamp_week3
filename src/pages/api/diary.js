@@ -5,6 +5,7 @@ const secret = process.env.NEXTAUTH_SECRET;
 
 export default async (req, res) => {
   const token = await getToken({ req, secret });
+  console.log("Token:", token);
   const client = await clientPromise;
   const db = client.db();
 
@@ -15,7 +16,7 @@ export default async (req, res) => {
 
   if (req.method === 'GET') {
     try {
-      const diaries = await db.collection('diaries').find({ userId: token.id }).toArray();
+      const diaries = await db.collection('diaries').find({ userId: token.user.id }).toArray();
       res.status(200).json(diaries);
     } catch (error) {
       res.status(500).json({ message: 'Failed to fetch diaries', error: error.message });
@@ -30,7 +31,7 @@ export default async (req, res) => {
       title,
       content,
       weather, // 날씨 데이터를 포함
-      userId: token.id,
+      userId: token.user.id,
       date: new Date(),
     };
     try {

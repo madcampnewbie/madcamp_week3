@@ -47,14 +47,22 @@ export default NextAuth({
     }),
   ],
   callbacks: {
-    async jwt({ token, account, profile }) {
+    async jwt({ token, account, profile, user }) {
+      const client = await clientPromise;
+      const db = client.db();
+
       if (account) {
-        console.log('New account. Setting up tokens:', account);
+        const existingUser = await db.collection('users').findOne({ email: profile.email });
+        const userId = existingUser ? existingUser._id : null;
+
         return {
           accessToken: account.access_token,
           accessTokenExpires: Date.now() + account.expires_in * 1000,
           refreshToken: account.refresh_token,
-          user: profile,
+          user: {
+            ...profile,
+            id: userId, // 사용자 ID 추가
+          },
         };
       }
 
@@ -62,7 +70,6 @@ export default NextAuth({
         return token;
       }
 
-      console.log('Token expired. Refreshing...');
       return refreshAccessToken(token);
     },
     async session({ session, token }) {
@@ -78,13 +85,16 @@ export default NextAuth({
 
       const existingUser = await db.collection('users').findOne({ email: user.email });
       if (!existingUser) {
-        await db.collection('users').insertOne({
+        const result = await db.collection('users').insertOne({
           email: user.email,
           name: user.name,
           image: user.image,
           createdAt: new Date(),
+          genres: [] // 사용자 장르를 저장할 필드 추가
         });
+        user.id = result.insertedId; // 새로 생성된 사용자의 ID를 설정
       } else {
+        user.id = existingUser._id; // 기존 사용자의 ID를 설정
         await db.collection('users').updateOne(
           { email: user.email },
           { $set: { lastLogin: new Date() } }
@@ -92,7 +102,13 @@ export default NextAuth({
       }
 
       return true;
-    }
+    },
+    async redirect({ url, baseUrl }) {
+      if (url === '/api/auth/callback/spotify') {
+        return '/genres'; // 장르 선택 페이지로 리디렉션
+      }
+      return baseUrl;
+    },
   },
   session: {
     jwt: true,

@@ -9,6 +9,7 @@ export default function Home() {
   const [diaries, setDiaries] = useState([]);
   const [weather, setWeather] = useState(null); 
   const [musicRecommendations, setMusicRecommendations] = useState([]);
+  const [genres, setGenres] = useState([]);
 
   useEffect(() => {
     if (status === 'authenticated') {
@@ -17,7 +18,18 @@ export default function Home() {
         .then((data) => setDiaries(data));
     }
   }, [status]);
+  useEffect(() => {
+    if (status === 'authenticated') {
+      fetch('/api/diary')
+        .then((response) => response.json())
+        .then((data) => setDiaries(data));
 
+      // Fetch user's genres
+      fetch('/api/user-genres')
+        .then((response) => response.json())
+        .then((data) => setGenres(data.genres || []));
+    }
+  }, [status]);
   useEffect(() => {
     fetchWeather()
       .then(setWeather)
@@ -44,7 +56,7 @@ export default function Home() {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ diary_entry: content, genre: 'hip-hop' })  // Modify genre as needed
+      body: JSON.stringify({ diary_entry: content, genre: genres || 'hip-hop' }),
     });
     const recommendations = await recommendationRes.json();
 

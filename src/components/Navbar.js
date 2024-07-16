@@ -1,6 +1,5 @@
 import { signIn, signOut, useSession } from 'next-auth/react';
 import Link from 'next/link';
-import Player from './Player';
 
 export default function Navbar() {
   const { data: session, status } = useSession();
@@ -12,9 +11,7 @@ export default function Navbar() {
   return (
     <nav style={navStyle}>
       <div style={linkContainerStyle}>
-        <Link href="/"style={linkStyle}>
-          Home
-        </Link>
+      <Link href="/genres" style={linkStyle}>Genre Selection</Link>
       </div>
       <div style={buttonContainerStyle}>
         {!session && (
@@ -25,8 +22,7 @@ export default function Navbar() {
         )}
         {session && (
           <>
-            <span style={welcomeStyle}>Welcome, {session.user?.name || 'User'}</span>
-            <Player token={session.accessToken} />
+            <span style={welcomeStyle}>Welcome, {session.user?.email || 'User1'}</span>
             <button onClick={() => signOut()} style={buttonStyle}>Sign out</button>
           </>
         )}
