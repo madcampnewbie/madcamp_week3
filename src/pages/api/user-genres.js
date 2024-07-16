@@ -21,7 +21,7 @@ export default async function handler(req, res) {
     }
     try {
       const result = await userCollection.updateOne(
-        { _id: new ObjectId(token.user.id) }, // 토큰에서 사용자 ID를 ObjectId로 변환
+        { _id: new ObjectId(token.user.id) },
         { $set: { genres } },
         { upsert: true }
       );
@@ -33,7 +33,18 @@ export default async function handler(req, res) {
       console.error('Failed to save genres', error);
       return res.status(500).json({ message: 'Failed to save genres', error: error.toString() });
     }
+  } else if (req.method === 'GET') {
+    try {
+      const user = await userCollection.findOne({ _id: new ObjectId(token.user.id) });
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      return res.status(200).json({ genres: user.genres || [] });
+    } catch (error) {
+      console.error('Failed to fetch genres', error);
+      return res.status(500).json({ message: 'Failed to fetch genres', error: error.toString() });
+    }
+  } else {
+    res.status(405).json({ message: 'Method not allowed' });
   }
-
-  res.status(405).json({ message: 'Method not allowed' });
 }

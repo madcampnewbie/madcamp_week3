@@ -5,7 +5,6 @@ const secret = process.env.NEXTAUTH_SECRET;
 
 export default async (req, res) => {
   const token = await getToken({ req, secret });
-  console.log("Token:", token);
   const client = await clientPromise;
   const db = client.db();
 
