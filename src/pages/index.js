@@ -1,5 +1,8 @@
 import { useSession, signIn } from 'next-auth/react';
+import { useSession, signIn } from 'next-auth/react';
 import { useEffect, useState } from 'react';
+import { fetchWeather } from '../libs/weather';
+import Player from '../components/Player';
 import { fetchWeather } from '../libs/weather';
 import Player from '../components/Player';
 
@@ -115,6 +118,24 @@ export default function Home() {
     } catch (error) {
       console.error('Error submitting diary:', error);
     }
+  };
+
+  const handleDelete = async (index) => {
+    const actualIndex = (currentPage - 1) * diariesPerPage + index;
+    const diaryToDelete = diaries[actualIndex];
+    const res = await fetch('/api/diary', {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ id: diaryToDelete._id }),
+      body: JSON.stringify({ title, content, weather, musicRecommendations: recommendationLinks }),
+    });
+    const newDiary = await res.json();
+    setDiaries((prevDiaries) => [newDiary, ...prevDiaries]); // Add the new diary to the list
+    setTitle('');
+    setContent('');
+    setCurrentPage(1); // Always go to the first page when adding a new diary
   };
 
   const handleDelete = async (index) => {
