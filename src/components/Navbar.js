@@ -2,13 +2,36 @@ import { signIn, signOut, useSession } from 'next-auth/react';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-
+const addFontFace = () => {
+  const fontFace1 = `
+    @font-face {
+      font-family: 'VITRO';
+      src: url('/fonts/VITRO.ttf') format('truetype');
+      font-weight: normal;
+      font-style: normal;
+    }
+  `;
+  const fontFace2 = `
+    @font-face {
+      font-family: 'VITROpride';
+      src: url('/fonts/VITROpride.ttf') format('truetype');
+      font-weight: normal;
+      font-style: normal;
+    }
+  `;
+  // 새로운 스타일 시트를 생성하고 @font-face 규칙을 추가
+  const styleSheet = document.createElement("style");
+  styleSheet.type = "text/css";
+  styleSheet.innerText = fontFace1 + fontFace2;
+  document.head.appendChild(styleSheet);
+};
 export default function Navbar() {
   const { data: session, status } = useSession();
   const [genres, setGenres] = useState([]);
   const router = useRouter();
 
   useEffect(() => {
+    addFontFace
     const fetchGenres = async () => {
       if (status === 'authenticated') {
         try {
@@ -26,11 +49,12 @@ export default function Navbar() {
 
   return (
     <nav style={navStyle}>
-      <div style={linkContainerStyle}>
+    <div style={linkContainerStyle}>
       <Link href="/genres" style={linkStyle}>Genre Selection</Link>
       <span>{genres.join(', ')}</span>
-      </div>
-      <div style={buttonContainerStyle}>
+    </div>
+    <h1 style={headingStyle}>산들바람</h1>
+    <div style={buttonContainerStyle}>
         {!session && (
           <>
             <button onClick={() => signIn("spotify")} style={buttonStyle}>Sign in</button>
@@ -47,8 +71,14 @@ export default function Navbar() {
     </nav>
   );
 }
-
+const headingStyle = {
+  margin: '0 auto',
+  color: '#000',
+  fontFamily: 'VITRO, Arial, sans-serif',
+  fontSize: '2rem',
+};
 const navStyle = {
+  fontFamily: 'VITRO, Arial, sans-serif',
   padding: '1rem',
   borderBottom: '1px solid #ccc',
   display: 'flex',
@@ -75,6 +105,7 @@ const buttonContainerStyle = {
 };
 
 const buttonStyle = {
+  fontFamily: 'VITROpride, Arial, sans-serif',
   marginRight: '1rem',
   padding: '0.5rem 1rem',
   border: 'none',
@@ -83,6 +114,7 @@ const buttonStyle = {
   color: '#fff',
   cursor: 'pointer',
   fontSize: '1rem',
+  fontWeight: 'bold',
 };
 
 const welcomeStyle = {

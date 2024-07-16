@@ -2,9 +2,30 @@ import { useSession, signIn } from 'next-auth/react';
 import { useEffect, useState } from 'react';
 import { fetchWeather } from '../libs/weather';
 import Player from '../components/Player';
-import axios from 'axios';
 import he from 'he';
-
+const addFontFace = () => {
+  const fontFace1 = `
+    @font-face {
+      font-family: 'VITRO';
+      src: url('/fonts/VITRO.ttf') format('truetype');
+      font-weight: normal;
+      font-style: normal;
+    }
+  `;
+  const fontFace2 = `
+    @font-face {
+      font-family: 'VITROpride';
+      src: url('/fonts/VITROpride.ttf') format('truetype');
+      font-weight: normal;
+      font-style: normal;
+    }
+  `;
+  // 새로운 스타일 시트를 생성하고 @font-face 규칙을 추가
+  const styleSheet = document.createElement("style");
+  styleSheet.type = "text/css";
+  styleSheet.innerText = fontFace1 + fontFace2;
+  document.head.appendChild(styleSheet);
+};
 export default function Home() {
   const { data: session, status } = useSession();
   const [title, setTitle] = useState('');
@@ -42,6 +63,7 @@ export default function Home() {
   const currentDiaries = diaries.slice(indexOfFirstDiary, indexOfLastDiary);
 
   useEffect(() => {
+    addFontFace(); 
     // Fetch news data
     fetch('/api/news')
       .then((response) => response.json())
@@ -171,7 +193,7 @@ export default function Home() {
         <Player token={session?.accessToken} playlist={musicRecommendations} reasons={musicReasons} />
       )}
       <main style={mainStyle}>
-        <h1 style={headingStyle}>산들바람</h1>
+      
         {status === 'authenticated' && (
           <>
             {weather && (
@@ -337,8 +359,13 @@ const TrackDetail = ({ trackId, accessToken }) => {
 const topNavBarHeight = '80px'; // Ensure topNavBarHeight is defined here
 
 const containerStyle = {
-  fontFamily: 'Arial, sans-serif',
+  fontFamily: 'VITROpride, Arial, sans-serif',
+  backgroundSize: 'contain', // 이미지 크기를 고정
+  backgroundAttachment: 'fixed', // 배경 이미지 고정
   backgroundColor: '#f8f8f8',
+  backgroundImage: 'url(/serene_landscape_background.png)', // 배경 이미지 경로
+  backgroundSize: 'cover', // 이미지가 화면을 덮도록 조정
+  backgroundPosition: 'center', // 이미지가 중앙에 위치하도록 조정
   minHeight: '100vh',
   display: 'flex',
   padding: '0 1rem',
@@ -492,6 +519,8 @@ const diaryContentStyle = {
   WebkitBoxOrient: 'vertical',
   WebkitLineClamp: 3, // Number of lines to show before truncating
   whiteSpace: 'normal',
+  fontSize: '1.3rem',
+  fontWeight: 'bold',
 };
 
 const weatherAndMusicStyle = {
@@ -603,7 +632,8 @@ const mainStyle = {
 
 const headingStyle = {
   textAlign: 'center',
-  color: '#333',
+  color: '#000',
+  fontFamily: 'VITRO, Arial, sans-serif'
 };
 
 const weatherStyle = {
