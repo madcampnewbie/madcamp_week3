@@ -80,10 +80,6 @@ export default function Diary() {
     });
   }, []);
 
-  if (status === 'loading') {
-    return <p>Loading...</p>;
-  }
-
   return (
     <div className="container">
       <div className="content">

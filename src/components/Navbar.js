@@ -4,10 +4,6 @@ import Link from 'next/link';
 export default function Navbar() {
   const { data: session, status } = useSession();
 
-  if (status === 'loading') {
-    return <p>Loading...</p>;
-  }
-
   return (
     <nav style={navStyle}>
       <div style={linkContainerStyle}>
