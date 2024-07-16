@@ -10,7 +10,13 @@ export default function Home() {
   const [weather, setWeather] = useState(null); 
   const [musicRecommendations, setMusicRecommendations] = useState([]);
   const [genres, setGenres] = useState([]);
-
+  const WeatherIcon = ({ iconCode, description }) => {
+    const iconUrl = `http://openweathermap.org/img/wn/${iconCode}.png`;
+  
+    return (
+      <img src={iconUrl} alt={description} />
+    );
+  };
   useEffect(() => {
     if (status === 'authenticated') {
       fetch('/api/diary')
@@ -75,7 +81,7 @@ export default function Home() {
           <>
             {weather && (
               <div style={weatherStyle}>
-                <p>Today's Weather: {weather.weather[0].description}</p>
+                <WeatherIcon iconCode={weather.weather[0].icon} description={weather.weather[0].description} />
                 <p>Temperature: {weather.main.temp}°C</p>
               </div>
             )}
@@ -105,7 +111,7 @@ export default function Home() {
                   <p style={diaryContentStyle}>{diary.content}</p>
                   {diary.weather && (
                     <div style={weatherInDiaryStyle}>
-                      <p>Weather: {diary.weather.weather[0].description}</p>
+                       <WeatherIcon iconCode={diary.weather.weather[0].icon} description={diary.weather.weather[0].description} />
                       <p>Temperature: {diary.weather.main.temp}°C</p>
                     </div>
                   )}
