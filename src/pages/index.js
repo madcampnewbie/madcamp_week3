@@ -1,8 +1,5 @@
 import { useSession, signIn } from 'next-auth/react';
-import { useSession, signIn } from 'next-auth/react';
 import { useEffect, useState } from 'react';
-import { fetchWeather } from '../libs/weather';
-import Player from '../components/Player';
 import { fetchWeather } from '../libs/weather';
 import Player from '../components/Player';
 
@@ -136,24 +133,6 @@ export default function Home() {
     setTitle('');
     setContent('');
     setCurrentPage(1); // Always go to the first page when adding a new diary
-  };
-
-  const handleDelete = async (index) => {
-    const actualIndex = (currentPage - 1) * diariesPerPage + index;
-    const diaryToDelete = diaries[actualIndex];
-    const res = await fetch('/api/diary', {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ id: diaryToDelete._id }),
-    });
-
-    if (res.ok) {
-      setDiaries((prevDiaries) => prevDiaries.filter((diary) => diary._id !== diaryToDelete._id));
-    } else {
-      console.error('Failed to delete diary');
-    }
   };
 
   const handlePageChange = (pageNumber) => {

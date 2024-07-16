@@ -1,7 +1,6 @@
 import { getToken } from 'next-auth/jwt';
 import clientPromise from '../../libs/mongodb';
 import { ObjectId } from 'mongodb';
-import { ObjectId } from 'mongodb';
 
 const secret = process.env.NEXTAUTH_SECRET;
 
