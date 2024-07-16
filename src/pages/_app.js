@@ -6,11 +6,8 @@ function MyApp({ Component, pageProps: { session, ...pageProps } }) {
   return (
     <SessionProvider session={session}>
       <Navbar />
-      <div className="container">
-        <div className="content">
-          <Component {...pageProps} />
-        </div>
-      </div>
+      <script src="https://sdk.scdn.co/spotify-player.js"></script>
+      <Component {...pageProps} />
     </SessionProvider>
   );
 }

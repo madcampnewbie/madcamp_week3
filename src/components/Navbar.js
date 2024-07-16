@@ -1,26 +1,92 @@
 import { signIn, signOut, useSession } from 'next-auth/react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 
 export default function Navbar() {
   const { data: session, status } = useSession();
+  const [genres, setGenres] = useState([]);
+  const router = useRouter();
+
+  useEffect(() => {
+    const fetchGenres = async () => {
+      if (status === 'authenticated') {
+        try {
+          const response = await fetch('/api/user-genres');
+          const data = await response.json();
+          setGenres(data.genres || []);
+        } catch (error) {
+          console.error('Error fetching user genres:', error);
+        }
+      }
+    };
+
+    fetchGenres();
+  }, [status, router.asPath]);
 
   return (
-    <nav className="navbar">
-      <Link href="/" style={{ marginRight: '1rem' }}>
-        Home
-      </Link>
-      {!session && (
-        <>
-          <button onClick={() => signIn()} style={{ marginRight: '1rem' }}>Sign in</button>
-          <button onClick={() => window.location.href='/auth/signup'}>Sign up</button>
-        </>
-      )}
-      {session && (
-        <>
-          <span style={{ marginRight: '1rem' }}>Welcome, {session.user.name}</span>
-          <button onClick={() => signOut()}>Sign out</button>
-        </>
-      )}
+    <nav style={navStyle}>
+      <div style={linkContainerStyle}>
+      <Link href="/genres" style={linkStyle}>Genre Selection</Link>
+      <span>{genres.join(', ')}</span>
+      </div>
+      <div style={buttonContainerStyle}>
+        {!session && (
+          <>
+            <button onClick={() => signIn("spotify")} style={buttonStyle}>Sign in</button>
+            <button onClick={() => window.location.href='/auth/signup'} style={buttonStyle}>Sign up</button>
+          </>
+        )}
+        {session && (
+          <>
+            <span style={welcomeStyle}>Welcome, {session.user?.email || 'User1'}</span>
+            <button onClick={() => signOut()} style={buttonStyle}>Sign out</button>
+          </>
+        )}
+      </div>
     </nav>
   );
 }
+
+const navStyle = {
+  padding: '1rem',
+  borderBottom: '1px solid #ccc',
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  backgroundColor: '#fff',
+};
+
+const linkContainerStyle = {
+  display: 'flex',
+  alignItems: 'center',
+};
+
+const linkStyle = {
+  marginRight: '1rem',
+  textDecoration: 'none',
+  color: '#0070f3',
+  fontSize: '1.2rem',
+};
+
+const buttonContainerStyle = {
+  display: 'flex',
+  alignItems: 'center',
+};
+
+const buttonStyle = {
+  marginRight: '1rem',
+  padding: '0.5rem 1rem',
+  border: 'none',
+  borderRadius: '4px',
+  backgroundColor: '#0070f3',
+  color: '#fff',
+  cursor: 'pointer',
+  fontSize: '1rem',
+};
+
+const welcomeStyle = {
+  marginRight: '1rem',
+  fontSize: '1rem',
+  color: '#333',
+};

@@ -1,0 +1,96 @@
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding-top: 20px;
+  }
+  
+  .content {
+    text-align: center;
+    max-width: 600px;
+    width: 100%;
+    padding: 20px;
+    background-color: #fff;
+  }
+  
+  .titleInput {
+    display: block;
+    margin-bottom: 10px;
+    padding: 5px 0;
+    font-size: 16px;
+    width: 100%;
+    max-width: 250px;
+    border: none;
+    border-bottom: 2px solid #ccc;
+    outline: none;
+    box-sizing: border-box;
+    transition: border-color 0.3s;
+    background-color: transparent;
+    text-align: center;
+    position: relative; /* Ensure relative positioning for the underline */
+  }
+  
+  .titleInput:focus {
+    border-bottom-color: #000;
+  }
+  
+  .contentTextarea {
+    display: block;
+    margin: 10px auto;
+    padding: 3px 20px;
+    font-size: 16px;
+    width: 100%;
+    max-width: 600px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    outline: none;
+    box-sizing: border-box;
+    transition: border-color 0.3s;
+    background: repeating-linear-gradient(white, white 29px, #ccc 30px);
+    font-family: 'Lucida Console', Monaco, monospace;
+    line-height: 30px;
+    height: 400px;
+    position: relative; /* Ensure relative positioning for the underline */
+  }
+  
+  .contentTextarea:focus {
+    border-color: #000;
+  }
+  
+  .underline {
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    height: 2px;
+    background-color: #ccc;
+    transition: width 0.3s, background-color 0.3s;
+    width: 0; /* Start with zero width */
+  }
+  
+  input:focus + .underline,
+  textarea:focus + .underline {
+    width: calc(100% + 2ch); /* Adjust width based on input length */
+    background-color: #000;
+  }
+  
+  .diaryItem {
+    margin-bottom: 20px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+  }
+  
+  .diaryItem h2 {
+    color: #4a90e2;
+  }
+  
+  .diaryItem p {
+    color: #333;
+  }
+  
+  .diaryItem small {
+    color: #999;
+  }
+  

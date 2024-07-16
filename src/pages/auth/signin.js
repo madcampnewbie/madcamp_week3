@@ -3,18 +3,11 @@ import { signIn, getSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
 
 export default function SignIn() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
   const router = useRouter();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const result = await signIn('credentials', {
-      redirect: false,
-      email,
-      password,
-    });
+  const handleSignIn = async () => {
+    const result = await signIn('spotify', { redirect: false });
 
     if (result.error) {
       setError(result.error);
@@ -26,20 +19,8 @@ export default function SignIn() {
   return (
     <div className="signin-container">
       <h1>Sign In</h1>
-      <form className="signin-form" onSubmit={handleSubmit}>
-        <label>
-          Email
-          <input className="signin-input" value={email} onChange={(e) => setEmail(e.target.value)} type="email" required />
-        </label>
-        <br />
-        <label>
-          Password
-          <input className="signin-input" value={password} onChange={(e) => setPassword(e.target.value)} type="password" required />
-        </label>
-        <br />
-        {error && <p style={{ color: 'red' }}>{error}</p>}
-        <button type="submit">Sign in</button>
-      </form>
+      {error && <p style={{ color: 'red' }}>{error}</p>}
+      <button onClick={handleSignIn}>Sign in with Spotify</button>
     </div>
   );
 }
