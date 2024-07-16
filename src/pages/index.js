@@ -29,7 +29,7 @@ export default function Home() {
     return doc.body.textContent || '';
   };
   const [currentPage, setCurrentPage] = useState(1);
-  const diariesPerPage = 10;
+  const diariesPerPage = 5;
 
   // 현재 페이지에 해당하는 일기들을 가져옴
   const indexOfLastDiary = currentPage * diariesPerPage;
@@ -93,13 +93,18 @@ export default function Home() {
   };
 
   const handleDelete = async (index) => {
-    const diaryToDelete = diaries[index];
-    const res = await fetch(`/api/diary/${diaryToDelete.id}`, {
+    const actualIndex = (currentPage - 1) * diariesPerPage + index;
+    const diaryToDelete = diaries[actualIndex];
+    const res = await fetch('/api/diary', {
       method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ id: diaryToDelete._id }),
     });
 
     if (res.ok) {
-      setDiaries((prevDiaries) => prevDiaries.filter((diary) => diary.id !== diaryToDelete.id));
+      setDiaries((prevDiaries) => prevDiaries.filter((diary) => diary._id !== diaryToDelete._id));
     } else {
       console.error('Failed to delete diary');
     }

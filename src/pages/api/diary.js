@@ -1,5 +1,6 @@
 import { getToken } from 'next-auth/jwt';
 import clientPromise from '../../libs/mongodb';
+import { ObjectId } from 'mongodb';
 
 const secret = process.env.NEXTAUTH_SECRET;
 
@@ -21,7 +22,7 @@ export default async (req, res) => {
       res.status(500).json({ message: 'Failed to fetch diaries', error: error.message });
     }
   } else if (req.method === 'POST') {
-    const { title, content, weather } = req.body; // 날씨 데이터를 받도록 변경
+    const { title, content, weather } = req.body;
     if (!title || !content) {
       res.status(400).json({ message: 'Title and content are required' });
       return;
@@ -29,7 +30,7 @@ export default async (req, res) => {
     const newDiary = {
       title,
       content,
-      weather, // 날씨 데이터를 포함
+      weather,
       userId: token.user.id,
       date: new Date(),
     };
@@ -39,6 +40,18 @@ export default async (req, res) => {
       res.status(201).json(insertedDiary);
     } catch (error) {
       res.status(500).json({ message: 'Failed to create diary', error: error.message });
+    }
+  } else if (req.method === 'DELETE') {
+    const { id } = req.body;
+    if (!id) {
+      res.status(400).json({ message: 'Diary ID is required' });
+      return;
+    }
+    try {
+      await db.collection('diaries').deleteOne({ _id: new ObjectId(id), userId: token.user.id });
+      res.status(200).json({ message: 'Diary deleted successfully' });
+    } catch (error) {
+      res.status(500).json({ message: 'Failed to delete diary', error: error.message });
     }
   } else {
     res.status(405).json({ message: 'Method not allowed' });
