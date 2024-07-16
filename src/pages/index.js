@@ -1,4 +1,4 @@
-import { useSession, signIn, signOut } from 'next-auth/react';
+import { useSession, signIn } from 'next-auth/react';
 import { useEffect, useState } from 'react';
 import { fetchWeather } from '../libs/weather';
 import Player from '../components/Player';
@@ -28,24 +28,37 @@ export default function Home() {
     const doc = new DOMParser().parseFromString(text, 'text/html');
     return doc.body.textContent || '';
   };
+  const [currentPage, setCurrentPage] = useState(1);
+  const diariesPerPage = 10;
+
+  // 현재 페이지에 해당하는 일기들을 가져옴
+  const indexOfLastDiary = currentPage * diariesPerPage;
+  const indexOfFirstDiary = indexOfLastDiary - diariesPerPage;
+
+  // 페이지에 해당하는 일기들만 슬라이싱
+  const currentDiaries = diaries.slice(indexOfFirstDiary, indexOfLastDiary);
 
   useEffect(() => {
-    if (status === 'authenticated') {
-      fetch('/api/diary')
-        .then((response) => response.json())
-        .then((data) => setDiaries(data));
+    // Fetch news data
+    fetch('/api/news')
+      .then((response) => response.json())
+      .then((data) => setNews(data))
+      .catch((error) => console.error('Error fetching news:', error));
 
-      // Fetch user's genres
-      fetch('/api/user-genres')
-        .then((response) => response.json())
-        .then((data) => setGenres(data.genres || []));
+    // Fetch diary data
+    fetch('/api/diaries')
+      .then((response) => response.json())
+      .then((data) => setDiaries(data.reverse())) // 데이터를 역순으로 정렬하여 설정
+      .catch((error) => console.error('Error fetching diaries:', error));
 
-      // Fetch news data
-      fetch('/api/news')
-        .then((response) => response.json())
-        .then((data) => setNews(data));
-    }
-  }, [status]);
+    // Fetch user genres data
+    fetch('/api/user-genres')
+      .then((response) => response.json())
+      .then((data) => {
+        // Handle user genres data
+      })
+      .catch((error) => console.error('Error fetching user genres:', error));
+  }, []);
 
   useEffect(() => {
     fetchWeather()
@@ -63,21 +76,37 @@ export default function Home() {
       body: JSON.stringify({ title, content, weather }),
     });
     const newDiary = await res.json();
-    setDiaries([...diaries, newDiary]);
+    setDiaries((prevDiaries) => [newDiary, ...prevDiaries]); // 새로운 일기를 배열 앞에 추가
     setTitle('');
     setContent('');
+    setCurrentPage(1); // 새로운 일기를 추가할 때 항상 첫 페이지로 이동
 
-    // Fetch music recommendations
     const recommendationRes = await fetch('/api/recommend', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ diary_entry: content, genre: genres || 'hip-hop' }),
+      body: JSON.stringify({ diary_entry: content, genre: genres.join(', ') || 'hip-hop' }),
     });
     const recommendations = await recommendationRes.json();
+    setMusicRecommendations(recommendations.map((rec) => rec.spotify_link));
+  };
 
-    setMusicRecommendations(recommendations.map(rec => rec.spotify_link));
+  const handleDelete = async (index) => {
+    const diaryToDelete = diaries[index];
+    const res = await fetch(`/api/diary/${diaryToDelete.id}`, {
+      method: 'DELETE',
+    });
+
+    if (res.ok) {
+      setDiaries((prevDiaries) => prevDiaries.filter((diary) => diary.id !== diaryToDelete.id));
+    } else {
+      console.error('Failed to delete diary');
+    }
+  };
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
   };
 
   if (status === 'loading') {
@@ -122,9 +151,14 @@ export default function Home() {
               <button type="submit" style={submitButtonStyle}>Add Diary</button>
             </form>
             <ul style={diaryListStyle}>
-              {diaries.map((diary, index) => (
+              {currentDiaries.map((diary, index) => (
                 <li key={index} style={diaryItemStyle}>
-                  <h2 style={diaryTitleStyle}>{diary.title}</h2>
+                  <div style={diaryHeaderStyle}>
+                    <h2 style={diaryTitleStyle}>{diary.title}</h2>
+                    <button onClick={() => handleDelete(index)} style={deleteButtonStyle}>
+                      <img src="/trash.png" alt="Delete" style={trashIconStyle} />
+                    </button>
+                  </div>
                   <p style={diaryContentStyle}>{diary.content}</p>
                   {diary.weather && (
                     <div style={weatherInDiaryStyle}>
@@ -136,6 +170,18 @@ export default function Home() {
                 </li>
               ))}
             </ul>
+            <div style={paginationStyle}>
+              {[...Array(Math.ceil(diaries.length / diariesPerPage)).keys()].map(number => (
+                <button
+                  key={number}
+                  onClick={() => handlePageChange(number + 1)}
+                  style={pageButtonStyle}
+                  disabled={currentPage === number + 1}
+                >
+                  {number + 1}
+                </button>
+              ))}
+            </div>
             {musicRecommendations.length > 0 && <Player token={session?.accessToken} playlist={musicRecommendations} />}
           </>
         )}
@@ -311,6 +357,12 @@ const diaryItemStyle = {
   marginBottom: '1rem',
 };
 
+const diaryHeaderStyle = {
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+};
+
 const diaryTitleStyle = {
   margin: '0 0 0.5rem 0',
   color: '#0070f3',
@@ -330,6 +382,40 @@ const weatherInDiaryStyle = {
 const diaryDateStyle = {
   color: '#666',
   fontSize: '0.875rem',
+};
+
+const deleteButtonStyle = {
+  background: 'none',
+  border: 'none',
+  cursor: 'pointer',
+};
+
+const trashIconStyle = {
+  width: '20px',
+  height: '20px',
+};
+
+const paginationStyle = {
+  display: 'flex',
+  justifyContent: 'center',
+  alignItems: 'center',
+  gap: '1rem',
+  marginTop: '2rem',
+};
+
+const pageButtonStyle = {
+  padding: '0.5rem 1rem',
+  fontSize: '1rem',
+  borderRadius: '4px',
+  border: 'none',
+  backgroundColor: '#0070f3',
+  color: '#fff',
+  cursor: 'pointer',
+};
+
+const pageNumberStyle = {
+  fontSize: '1rem',
+  color: '#333',
 };
 
 const signInContainerStyle = {

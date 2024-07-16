@@ -6,18 +6,25 @@ const Genres = () => {
   const { data: session, status, update } = useSession()
   const [selectedGenres, setSelectedGenres] = useState([]);
   const [savedSuccessfully, setSavedSuccessfully] = useState(false);
-  const availableGenres = [
-    'Pop',
-    'Rock',
-    'Hip-Hop',
-    'Electronic',
-    'R&B',
-    'Country',
-    'Jazz',
-    'Classical',
-    'Folk',
-    'Indie',
-  ];
+  const availableGenres =  [
+    "Pop",
+    "Rock",
+    "Hip-Hop/Rap",
+    "Electronic/Dance",
+    "Jazz",
+    "Classical",
+    "R&B/Soul",
+    "Country",
+    "Reggae",
+    "Latin",
+    "K-Pop",
+    "Metal",
+    "Alternative/Indie",
+    "Blues",
+    "Folk",
+    "Punk",
+    "Gospel"
+];
   const router = useRouter();
   const redirect = () =>{
     router.push('/');
