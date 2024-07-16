@@ -10,24 +10,25 @@ export default function Home() {
   const [diaries, setDiaries] = useState([]);
   const [weather, setWeather] = useState(null);
   const [musicRecommendations, setMusicRecommendations] = useState([]);
+  const [musicReasons, setMusicReasons] = useState([]);
   const [genres, setGenres] = useState([]);
   const [news, setNews] = useState({});
   const [isNewsVisible, setIsNewsVisible] = useState(false);
+  const [expandedDiaryIndex, setExpandedDiaryIndex] = useState(null); // Track expanded diary
 
   const topNavBarHeight = '80px'; // Adjust this value according to the actual height of your top navigation bar
 
   const WeatherIcon = ({ iconCode, description }) => {
     const iconUrl = `http://openweathermap.org/img/wn/${iconCode}.png`;
 
-    return (
-      <img src={iconUrl} alt={description} />
-    );
+    return <img src={iconUrl} alt={description} />;
   };
 
   const stripHtmlTags = (text) => {
     const doc = new DOMParser().parseFromString(text, 'text/html');
     return doc.body.textContent || '';
   };
+
   const [currentPage, setCurrentPage] = useState(1);
   const diariesPerPage = 5;
 
@@ -47,17 +48,24 @@ export default function Home() {
 
     // Fetch diary data
     fetch('/api/diary')
+    fetch('/api/diary')
       .then((response) => response.json())
       .then((data) => setDiaries(data.reverse())) // 데이터를 역순으로 정렬하여 설정
       .catch((error) => console.error('Error fetching diaries:', error));
 
     // Fetch user genres data
     fetch('/api/user-genres')
-      .then((response) => response.json())
-      .then((data) => {
-        // Handle user genres data
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('Failed to fetch genres');
+        }
+        return response.json();
       })
-      .catch((error) => console.error('Error fetching user genres:', error));
+      .then((data) => {
+        console.log('Fetched genres:', data.genres);
+        setGenres(data.genres || []);
+      })
+      .catch((error) => console.error('Failed to fetch genres:', error));
   }, []);
 
   useEffect(() => {
@@ -117,6 +125,10 @@ export default function Home() {
     setCurrentPage(pageNumber);
   };
 
+  const toggleDiaryExpansion = (index) => {
+    setExpandedDiaryIndex(expandedDiaryIndex === index ? null : index);
+  };
+
   if (status === 'loading') {
     return <p>Loading...</p>;
   }
@@ -129,8 +141,19 @@ export default function Home() {
       >
         News 보기
       </button>
+      {musicRecommendations.length > 0 && (
+        <div style={musicPlayerContainerStyle}>
+          <h2>Music Recommendations</h2>
+          <Player token={session?.accessToken} playlist={musicRecommendations} />
+          <div style={musicReasonsStyle}>
+            {musicReasons.map((reason, index) => (
+              <p key={index}>{`Recommendation ${index + 1}: ${reason}`}</p>
+            ))}
+          </div>
+        </div>
+      )}
       <main style={mainStyle}>
-        <h1 style={headingStyle}>무슨 이름이 좋을까</h1>
+        <h1 style={headingStyle}>산들바람</h1>
         {status === 'authenticated' && (
           <>
             {weather && (
@@ -160,14 +183,22 @@ export default function Home() {
             </form>
             <ul style={diaryListStyle}>
               {currentDiaries.map((diary, index) => (
-                <li key={index} style={diaryItemStyle}>
+                <li key={index} style={diaryItemStyle} onClick={() => toggleDiaryExpansion(index)}>
                   <div style={diaryHeaderStyle}>
                     <h2 style={diaryTitleStyle}>{diary.title}</h2>
-                    <button onClick={() => handleDelete(index)} style={deleteButtonStyle}>
+                    <button onClick={(e) => { e.stopPropagation(); handleDelete(index); }} style={deleteButtonStyle}>
                       <img src="/trash.png" alt="Delete" style={trashIconStyle} />
                     </button>
                   </div>
-                  <p style={diaryContentStyle}>{diary.content}</p>
+                  <p style={{
+                    ...diaryContentStyle,
+                    WebkitLineClamp: expandedDiaryIndex === index ? 'unset' : 3,
+                    whiteSpace: expandedDiaryIndex === index ? 'normal' : 'nowrap',
+                    overflow: expandedDiaryIndex === index ? 'visible' : 'hidden',
+                    textOverflow: expandedDiaryIndex === index ? 'unset' : 'ellipsis',
+                  }}>
+                    {diary.content}
+                  </p>
                   {diary.weather && (
                     <div style={weatherInDiaryStyle}>
                       <WeatherIcon iconCode={diary.weather.weather[0].icon} description={diary.weather.weather[0].description} />
@@ -185,7 +216,7 @@ export default function Home() {
               ))}
             </ul>
             <div style={paginationStyle}>
-              {[...Array(Math.ceil(diaries.length / diariesPerPage)).keys()].map(number => (
+              {[...Array(Math.ceil(diaries.length / diariesPerPage)).keys()].map((number) => (
                 <button
                   key={number}
                   onClick={() => handlePageChange(number + 1)}
@@ -196,7 +227,6 @@ export default function Home() {
                 </button>
               ))}
             </div>
-            {musicRecommendations.length > 0 && <Player token={session?.accessToken} playlist={musicRecommendations} />}
           </>
         )}
         {status !== 'authenticated' && (
@@ -208,7 +238,7 @@ export default function Home() {
       </main>
       <aside style={{ ...newsStyle, top: topNavBarHeight, transform: isNewsVisible ? 'translateX(0)' : 'translateX(100%)' }}>
         <button onClick={() => setIsNewsVisible(false)} style={newsCloseButtonStyle}>
-          News 접기 &gt;&gt;&gt;&gt;
+          News 접기 &gt;&gt;&gt;
         </button>
         <h2>Latest News by Category</h2>
         {Object.keys(news).length > 0 ? (
@@ -219,7 +249,7 @@ export default function Home() {
                 {news[category].map((item, index) => (
                   <li key={index}>
                     <a href={item.link} target="_blank" rel="noopener noreferrer" style={newsLinkStyle}>
-                      {stripHtmlTags(item.title)}
+                      • {stripHtmlTags(item.title)}
                     </a>
                   </li>
                 ))}
@@ -234,7 +264,7 @@ export default function Home() {
   );
 }
 
-const topNavBarHeight = '80px'; // Move topNavBarHeight here to ensure it is defined before use
+const topNavBarHeight = '80px'; // Ensure topNavBarHeight is defined here
 
 const containerStyle = {
   fontFamily: 'Arial, sans-serif',
@@ -243,6 +273,24 @@ const containerStyle = {
   display: 'flex',
   padding: '0 1rem',
   position: 'relative',
+};
+
+const musicPlayerContainerStyle = {
+  position: 'fixed',
+  top: topNavBarHeight,
+  left: '1rem',
+  width: '300px',
+  height: '300px', // Square box
+  padding: '1rem',
+  backgroundColor: '#fff',
+  border: '1px solid #ccc',
+  boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)',
+  overflowY: 'auto',
+  zIndex: 1000, // Ensure it stays above other content
+};
+
+const musicReasonsStyle = {
+  marginTop: '1rem',
 };
 
 const newsButtonStyle = {
@@ -271,7 +319,6 @@ const newsCloseButtonStyle = {
   marginBottom: '1rem',
 };
 
-
 const newsStyle = {
   position: 'fixed',
   right: 0,
@@ -285,41 +332,6 @@ const newsStyle = {
   transition: 'transform 0.3s ease-in-out',
   transform: 'translateX(100%)',
   top: topNavBarHeight,
-};
-
-const newsCategoryStyle = {
-  marginBottom: '1rem',
-};
-
-const newsListStyle = {
-  listStyleType: 'none',
-  padding: 0,
-};
-
-const newsLinkStyle = {
-  textDecoration: 'none',
-  color: '#000',
-};
-
-const mainStyle = {
-  flex: 1,
-  maxWidth: '800px',
-  margin: '0 auto',
-  padding: '2rem 0',
-};
-
-const headingStyle = {
-  textAlign: 'center',
-  color: '#333',
-};
-
-const weatherStyle = {
-  textAlign: 'center',
-  backgroundColor: '#fff',
-  padding: '1rem',
-  borderRadius: '8px',
-  boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)',
-  marginBottom: '2rem',
 };
 
 const formStyle = {
@@ -369,6 +381,7 @@ const diaryItemStyle = {
   borderRadius: '8px',
   boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)',
   marginBottom: '1rem',
+  cursor: 'pointer',
 };
 
 const diaryHeaderStyle = {
@@ -384,6 +397,13 @@ const diaryTitleStyle = {
 
 const diaryContentStyle = {
   margin: '0 0 0.5rem 0',
+  flex: '1',
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  display: '-webkit-box',
+  WebkitBoxOrient: 'vertical',
+  WebkitLineClamp: 3, // Number of lines to show before truncating
+  whiteSpace: 'normal',
 };
 
 const weatherInDiaryStyle = {
@@ -445,4 +465,39 @@ const signInButtonStyle = {
   backgroundColor: '#0070f3',
   color: '#fff',
   cursor: 'pointer',
+};
+
+const mainStyle = {
+  flex: 1,
+  maxWidth: '800px',
+  margin: '0 auto',
+  padding: '2rem 0',
+};
+
+const headingStyle = {
+  textAlign: 'center',
+  color: '#333',
+};
+
+const weatherStyle = {
+  textAlign: 'center',
+  backgroundColor: '#fff',
+  padding: '1rem',
+  borderRadius: '8px',
+  boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)',
+  marginBottom: '2rem',
+};
+
+const newsCategoryStyle = {
+  marginBottom: '1rem',
+};
+
+const newsListStyle = {
+  listStyleType: 'none',
+  padding: 0,
+};
+
+const newsLinkStyle = {
+  textDecoration: 'none',
+  color: '#000',
 };
