@@ -49,11 +49,12 @@ export default function Navbar() {
 
   return (
     <nav style={navStyle}>
-      <div style={linkContainerStyle}>
+    <div style={linkContainerStyle}>
       <Link href="/genres" style={linkStyle}>Genre Selection</Link>
       <span>{genres.join(', ')}</span>
-      </div>
-      <div style={buttonContainerStyle}>
+    </div>
+    <h1 style={headingStyle}>산들바람</h1>
+    <div style={buttonContainerStyle}>
         {!session && (
           <>
             <button onClick={() => signIn("spotify")} style={buttonStyle}>Sign in</button>
@@ -70,7 +71,12 @@ export default function Navbar() {
     </nav>
   );
 }
-
+const headingStyle = {
+  margin: '0 auto',
+  color: '#000',
+  fontFamily: 'VITRO, Arial, sans-serif',
+  fontSize: '2rem',
+};
 const navStyle = {
   fontFamily: 'VITRO, Arial, sans-serif',
   padding: '1rem',

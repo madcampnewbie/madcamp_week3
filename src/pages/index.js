@@ -190,7 +190,7 @@ export default function Home() {
         </div>
       )}
       <main style={mainStyle}>
-        <h1 style={headingStyle}>산들바람</h1>
+      
         {status === 'authenticated' && (
           <>
             {weather && (
