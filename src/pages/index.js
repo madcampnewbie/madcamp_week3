@@ -12,7 +12,7 @@ export default function Home() {
   const [musicRecommendations, setMusicRecommendations] = useState([]);
   const [genres, setGenres] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const diariesPerPage = 10;
+  const diariesPerPage = 5;
 
   // 현재 페이지에 해당하는 일기들을 가져옴
   const indexOfLastDiary = currentPage * diariesPerPage;
@@ -80,13 +80,18 @@ export default function Home() {
   };
 
   const handleDelete = async (index) => {
-    const diaryToDelete = diaries[index];
-    const res = await fetch(`/api/diary/${diaryToDelete.id}`, {
+    const actualIndex = (currentPage - 1) * diariesPerPage + index;
+    const diaryToDelete = diaries[actualIndex];
+    const res = await fetch('/api/diary', {
       method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ id: diaryToDelete._id }),
     });
 
     if (res.ok) {
-      setDiaries((prevDiaries) => prevDiaries.filter((diary) => diary.id !== diaryToDelete.id));
+      setDiaries((prevDiaries) => prevDiaries.filter((diary) => diary._id !== diaryToDelete._id));
     } else {
       console.error('Failed to delete diary');
     }
@@ -102,80 +107,90 @@ export default function Home() {
 
   return (
     <div style={containerStyle}>
-      <main style={mainStyle}>
-        <h1 style={headingStyle}>Diary App</h1>
-        {status === 'authenticated' && (
-          <>
-            {weather && (
-              <div style={weatherStyle}>
-                <WeatherIcon iconCode={weather.weather[0].icon} description={weather.weather[0].description} />
-                <p>Temperature: {weather.main.temp}°C</p>
-              </div>
-            )}
-            <form onSubmit={handleSubmit} style={formStyle}>
-              <input
-                type="text"
-                placeholder="Title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                required
-                style={inputStyle}
-              />
-              <textarea
-                className="textarea-notebook"
-                placeholder="Content"
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                required
-                style={textareaStyle}
-              ></textarea>
-              <button type="submit" style={submitButtonStyle}>Add Diary</button>
-            </form>
-            <ul style={diaryListStyle}>
-              {currentDiaries.map((diary, index) => (
-                <li key={index} style={diaryItemStyle}>
-                  <div style={diaryHeaderStyle}>
-                    <h2 style={diaryTitleStyle}>{diary.title}</h2>
-                    <button onClick={() => handleDelete(index)} style={deleteButtonStyle}>
-                      <img src="/trash.png" alt="Delete" style={trashIconStyle} />
-                    </button>
-                  </div>
-                  <p style={diaryContentStyle}>{diary.content}</p>
-                  {diary.weather && (
-                    <div style={weatherInDiaryStyle}>
-                      <WeatherIcon iconCode={diary.weather.weather[0].icon} description={diary.weather.weather[0].description} />
-                      <p>Temperature: {diary.weather.main.temp}°C</p>
-                    </div>
-                  )}
-                  <small style={diaryDateStyle}>{new Date(diary.date).toLocaleString()}</small>
-                </li>
-              ))}
-            </ul>
-            <div style={paginationStyle}>
-              {[...Array(Math.ceil(diaries.length / diariesPerPage)).keys()].map(number => (
-                <button
-                  key={number}
-                  onClick={() => handlePageChange(number + 1)}
-                  style={pageButtonStyle}
-                  disabled={currentPage === number + 1}
-                >
-                  {number + 1}
-                </button>
-              ))}
+    <main style={mainStyle}>
+      <h1 style={headingStyle}>Diary App</h1>
+      {status === 'authenticated' && (
+        <>
+          {musicRecommendations.length > 0 && (
+            <Player token={session?.accessToken} playlist={musicRecommendations} />
+          )}
+          {weather && (
+            <div style={weatherStyle}>
+              <WeatherIcon iconCode={weather.weather[0].icon} description={weather.weather[0].description} />
+              <p>Temperature: {weather.main.temp}°C</p>
             </div>
-            {musicRecommendations.length > 0 && <Player token={session?.accessToken} playlist={musicRecommendations} />}
-          </>
-        )}
-        {status !== 'authenticated' && (
-          <div style={signInContainerStyle}>
-            <p>Please sign in to use the diary app and Spotify player.</p>
-            <button onClick={() => signIn('spotify')} style={signInButtonStyle}>Sign in with Spotify</button>
+          )}
+          <form onSubmit={handleSubmit} style={formStyle}>
+            <input
+              type="text"
+              placeholder="Title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              required
+              style={inputStyle}
+            />
+            <textarea
+              className="textarea-notebook"
+              placeholder="Content"
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              required
+              style={textareaStyle}
+            ></textarea>
+            <button type="submit" style={submitButtonStyle}>Add Diary</button>
+          </form>
+          <ul style={diaryListStyle}>
+            {currentDiaries.map((diary, index) => (
+              <li key={index} style={diaryItemStyle}>
+                <div style={diaryHeaderStyle}>
+                  <h2 style={diaryTitleStyle}>{diary.title}</h2>
+                  <button onClick={() => handleDelete(index)} style={deleteButtonStyle}>
+                    <img src="/trash.png" alt="Delete" style={trashIconStyle} />
+                  </button>
+                </div>
+                <p style={diaryContentStyle}>{diary.content}</p>
+                {diary.weather && (
+                  <div style={weatherInDiaryStyle}>
+                    <WeatherIcon iconCode={diary.weather.weather[0].icon} description={diary.weather.weather[0].description} />
+                    <p>Temperature: {diary.weather.main.temp}°C</p>
+                  </div>
+                )}
+                <small style={diaryDateStyle}>{new Date(diary.date).toLocaleString()}</small>
+              </li>
+            ))}
+          </ul>
+          <div style={paginationStyle}>
+            {[...Array(Math.ceil(diaries.length / diariesPerPage)).keys()].map(number => (
+              <button
+                key={number}
+                onClick={() => handlePageChange(number + 1)}
+                style={pageButtonStyle}
+                disabled={currentPage === number + 1}
+              >
+                {number + 1}
+              </button>
+            ))}
           </div>
-        )}
-      </main>
-    </div>
-  );
+        </>
+      )}
+      {status !== 'authenticated' && (
+        <div style={signInContainerStyle}>
+          <p>Please sign in to use the diary app and Spotify player.</p>
+          <button onClick={() => signIn('spotify')} style={signInButtonStyle}>Sign in with Spotify</button>
+        </div>
+      )}
+    </main>
+  </div>
+);
 }
+const headerStyle = {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  padding: '1rem',
+  backgroundColor: '#f8f8f8',
+  boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+};
 
 const containerStyle = {
   fontFamily: 'Arial, sans-serif',

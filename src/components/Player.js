@@ -6,6 +6,8 @@ const Player = ({ token, playlist }) => {
   const [currentTrack, setCurrentTrack] = useState(null);
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
   const [deviceId, setDeviceId] = useState(null);
+  const [progress, setProgress] = useState(0);
+  const [duration, setDuration] = useState(0);
 
   useEffect(() => {
     if (!token) {
@@ -36,6 +38,8 @@ const Player = ({ token, playlist }) => {
           if (state) {
             setCurrentTrack(state.track_window.current_track);
             setIsPaused(state.paused);
+            setProgress(state.position);
+            setDuration(state.duration);
 
             // If the track has ended, play the next track
             if (state.paused && state.position === 0 && state.track_window.previous_tracks.find(track => track.id === state.track_window.current_track.id)) {
@@ -101,6 +105,9 @@ const Player = ({ token, playlist }) => {
           <p style={artistNameStyle}>{currentTrack.artists[0].name}</p>
         </div>
       )}
+      <div style={progressBarContainerStyle}>
+        <div style={{ ...progressBarStyle, width: `${(progress / duration) * 100}%` }}></div>
+      </div>
       <button onClick={() => player.togglePlay()} style={playButtonStyle}>
         {isPaused ? 'Play' : 'Pause'}
       </button>
@@ -111,43 +118,66 @@ const Player = ({ token, playlist }) => {
 
 const playerContainerStyle = {
   display: 'flex',
+  flexDirection: 'column',
   alignItems: 'center',
-  backgroundColor: '#f0f0f0',
-  padding: '0.5rem 1rem',
-  borderRadius: '4px',
+  backgroundColor: '#282c34',
+  padding: '1rem',
+  borderRadius: '8px',
+  boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+  maxWidth: '300px',
+  margin: '1rem auto',
 };
 
 const trackInfoStyle = {
-  marginRight: '1rem',
+  marginBottom: '1rem',
+  textAlign: 'center',
 };
 
 const trackNameStyle = {
   margin: 0,
   fontWeight: 'bold',
+  fontSize: '1.1rem',
+  color: '#fff',
 };
 
 const artistNameStyle = {
   margin: 0,
-  color: '#666',
+  color: '#ccc',
+};
+
+const progressBarContainerStyle = {
+  width: '100%',
+  height: '10px',
+  backgroundColor: '#444',
+  borderRadius: '5px',
+  overflow: 'hidden',
+  marginBottom: '1rem',
+};
+
+const progressBarStyle = {
+  height: '100%',
+  backgroundColor: '#1db954',
 };
 
 const playButtonStyle = {
-  padding: '0.5rem 1rem',
+  padding: '0.75rem 1.5rem',
   border: 'none',
-  borderRadius: '4px',
-  backgroundColor: '#0070f3',
+  borderRadius: '50%',
+  backgroundColor: '#1db954',
   color: '#fff',
   cursor: 'pointer',
-  marginRight: '0.5rem',
+  marginBottom: '0.5rem',
+  boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
 };
 
 const nextButtonStyle = {
   padding: '0.5rem 1rem',
   border: 'none',
   borderRadius: '4px',
-  backgroundColor: '#28a745',
+  backgroundColor: '#5352ed',
   color: '#fff',
   cursor: 'pointer',
+  boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
 };
 
 export default Player;
