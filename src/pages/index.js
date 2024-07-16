@@ -2,28 +2,33 @@ import { useSession, signIn, signOut } from 'next-auth/react';
 import { useEffect, useState } from 'react';
 import { fetchWeather } from '../libs/weather';
 import Player from '../components/Player';
+
 export default function Home() {
   const { data: session, status } = useSession();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [diaries, setDiaries] = useState([]);
-  const [weather, setWeather] = useState(null); 
+  const [weather, setWeather] = useState(null);
   const [musicRecommendations, setMusicRecommendations] = useState([]);
   const [genres, setGenres] = useState([]);
+  const [news, setNews] = useState({});
+  const [isNewsVisible, setIsNewsVisible] = useState(false);
+
+  const topNavBarHeight = '80px'; // Adjust this value according to the actual height of your top navigation bar
+
   const WeatherIcon = ({ iconCode, description }) => {
     const iconUrl = `http://openweathermap.org/img/wn/${iconCode}.png`;
-  
+
     return (
       <img src={iconUrl} alt={description} />
     );
   };
-  useEffect(() => {
-    if (status === 'authenticated') {
-      fetch('/api/diary')
-        .then((response) => response.json())
-        .then((data) => setDiaries(data));
-    }
-  }, [status]);
+
+  const stripHtmlTags = (text) => {
+    const doc = new DOMParser().parseFromString(text, 'text/html');
+    return doc.body.textContent || '';
+  };
+
   useEffect(() => {
     if (status === 'authenticated') {
       fetch('/api/diary')
@@ -34,8 +39,14 @@ export default function Home() {
       fetch('/api/user-genres')
         .then((response) => response.json())
         .then((data) => setGenres(data.genres || []));
+
+      // Fetch news data
+      fetch('/api/news')
+        .then((response) => response.json())
+        .then((data) => setNews(data));
     }
   }, [status]);
+
   useEffect(() => {
     fetchWeather()
       .then(setWeather)
@@ -49,7 +60,7 @@ export default function Home() {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ title, content, weather }), 
+      body: JSON.stringify({ title, content, weather }),
     });
     const newDiary = await res.json();
     setDiaries([...diaries, newDiary]);
@@ -75,8 +86,14 @@ export default function Home() {
 
   return (
     <div style={containerStyle}>
+      <button
+        onClick={() => setIsNewsVisible(!isNewsVisible)}
+        style={{ ...newsButtonStyle, display: isNewsVisible ? 'none' : 'block' }}
+      >
+        News 보기
+      </button>
       <main style={mainStyle}>
-        <h1 style={headingStyle}>Diary App</h1>
+        <h1 style={headingStyle}>무슨 이름이 좋을까</h1>
         {status === 'authenticated' && (
           <>
             {weather && (
@@ -111,7 +128,7 @@ export default function Home() {
                   <p style={diaryContentStyle}>{diary.content}</p>
                   {diary.weather && (
                     <div style={weatherInDiaryStyle}>
-                       <WeatherIcon iconCode={diary.weather.weather[0].icon} description={diary.weather.weather[0].description} />
+                      <WeatherIcon iconCode={diary.weather.weather[0].icon} description={diary.weather.weather[0].description} />
                       <p>Temperature: {diary.weather.main.temp}°C</p>
                     </div>
                   )}
@@ -129,18 +146,103 @@ export default function Home() {
           </div>
         )}
       </main>
+      <aside style={{ ...newsStyle, top: topNavBarHeight, transform: isNewsVisible ? 'translateX(0)' : 'translateX(100%)' }}>
+        <button onClick={() => setIsNewsVisible(false)} style={newsCloseButtonStyle}>
+          News 접기 &gt;&gt;&gt;&gt;
+        </button>
+        <h2>Latest News by Category</h2>
+        {Object.keys(news).length > 0 ? (
+          Object.keys(news).map((category) => (
+            <div key={category} style={newsCategoryStyle}>
+              <h3>{category}</h3>
+              <ul style={newsListStyle}>
+                {news[category].map((item, index) => (
+                  <li key={index}>
+                    <a href={item.link} target="_blank" rel="noopener noreferrer" style={newsLinkStyle}>
+                      {stripHtmlTags(item.title)}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))
+        ) : (
+          <p>No news available</p>
+        )}
+      </aside>
     </div>
   );
 }
+
+const topNavBarHeight = '80px'; // Move topNavBarHeight here to ensure it is defined before use
 
 const containerStyle = {
   fontFamily: 'Arial, sans-serif',
   backgroundColor: '#f8f8f8',
   minHeight: '100vh',
+  display: 'flex',
   padding: '0 1rem',
+  position: 'relative',
+};
+
+const newsButtonStyle = {
+  position: 'absolute',
+  top: '1.8rem',
+  right: '1rem',
+  padding: '0.75rem 1rem',
+  fontSize: '1rem',
+  borderRadius: '4px',
+  border: 'none',
+  backgroundColor: '#0070f3',
+  color: '#fff',
+  cursor: 'pointer',
+  zIndex: 10,
+};
+
+const newsCloseButtonStyle = {
+  width: '70%',
+  padding: '0.75rem 1rem',
+  fontSize: '1rem',
+  borderRadius: '4px',
+  border: 'none',
+  backgroundColor: '#0070f3',
+  color: '#fff',
+  cursor: 'pointer',
+  marginBottom: '1rem',
+};
+
+
+const newsStyle = {
+  position: 'fixed',
+  right: 0,
+  width: '300px',
+  height: `calc(100% - ${topNavBarHeight})`, // Adjust height to account for the top navigation bar
+  padding: '1rem',
+  backgroundColor: '#fff',
+  borderLeft: '1px solid #ccc',
+  boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)',
+  overflowY: 'auto',
+  transition: 'transform 0.3s ease-in-out',
+  transform: 'translateX(100%)',
+  top: topNavBarHeight,
+};
+
+const newsCategoryStyle = {
+  marginBottom: '1rem',
+};
+
+const newsListStyle = {
+  listStyleType: 'none',
+  padding: 0,
+};
+
+const newsLinkStyle = {
+  textDecoration: 'none',
+  color: '#000',
 };
 
 const mainStyle = {
+  flex: 1,
   maxWidth: '800px',
   margin: '0 auto',
   padding: '2rem 0',

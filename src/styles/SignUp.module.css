@@ -1,0 +1,51 @@
+/* styles/SignUp.module.css */
+.pageContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 70vh; /* 전체 화면 높이 */
+}
+
+.signupContainer {
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.signupForm input {
+  display: block;
+  margin: 0 auto 10px auto;
+  padding: 10px 20px;
+  font-size: 16px;
+  width: 100%;
+  max-width: 300px;
+  border: none;
+  border-bottom: 2px solid #ccc;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.3s;
+  text-align: center; /* Center the text and cursor */
+}
+
+.signupForm input::placeholder {
+  text-align: center; /* Center the placeholder text */
+}
+
+.signupForm input:focus {
+  border-bottom-color: #000000;
+}
+
+.signupForm button {
+  background-color: #ffffff;
+  color: rgb(0, 0, 0);
+  border: none;
+  border-radius: 4px;
+  padding: 10px 20px;
+  cursor: pointer;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Added box-shadow */
+  transition: box-shadow 0.3s ease; /* Smooth transition for shadow */
+}

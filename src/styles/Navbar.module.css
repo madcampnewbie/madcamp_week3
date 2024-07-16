@@ -1,0 +1,41 @@
+/* styles/Navbar.module.css */
+.navbar {
+    width: 100%;
+    background-color: #fff;
+    color: #000;
+    padding: 1rem;
+    border-bottom: 1px solid #ccc;
+    display: flex;
+    align-items: center;
+    position: relative;
+  }
+  
+  .link {
+    margin-right: 1rem;
+    color: #000;
+    text-decoration: none;
+  }
+  
+  .link:hover {
+    text-decoration: underline;
+  }
+  
+  .button {
+    margin-right: 1rem;
+    padding: 10px 20px;
+    background-color: white;
+    color: #0070f3;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+  }
+  
+  .button:hover {
+    background-color: #e0e0e0;
+  }
+  
+  .welcome {
+    margin-right: 1rem;
+    color: #000;
+  }
+  
