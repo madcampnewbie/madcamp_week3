@@ -20,7 +20,6 @@ export default function Home() {
 
   const WeatherIcon = ({ iconCode, description }) => {
     const iconUrl = `http://openweathermap.org/img/wn/${iconCode}.png`;
-
     return <img src={iconUrl} alt={description} />;
   };
 
@@ -47,7 +46,6 @@ export default function Home() {
       .catch((error) => console.error('Error fetching news:', error));
 
     // Fetch diary data
-    fetch('/api/diary')
     fetch('/api/diary')
       .then((response) => response.json())
       .then((data) => setDiaries(data.reverse())) // 데이터를 역순으로 정렬하여 설정
@@ -76,31 +74,47 @@ export default function Home() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
-    // Fetch music recommendations first
-    const recommendationRes = await fetch('/api/recommend', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ diary_entry: content, genre: genres.join(', ') || 'hip-hop' }),
-    });
-    const recommendations = await recommendationRes.json();
-    const recommendationLinks = recommendations.map((rec) => rec.spotify_link);
-  
-    // Then, create the diary entry including the music recommendations
-    const res = await fetch('/api/diary', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ title, content, weather, musicRecommendations: recommendationLinks }),
-    });
-    const newDiary = await res.json();
-    setDiaries((prevDiaries) => [newDiary, ...prevDiaries]); // Add the new diary to the list
-    setTitle('');
-    setContent('');
-    setCurrentPage(1); // Always go to the first page when adding a new diary
+
+    try {
+      // Fetch music recommendations first
+      const recommendationRes = await fetch('/api/recommend', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ diary_entry: content, genre: genres.join(', ') || 'hip-hop' }),
+      });
+
+      if (!recommendationRes.ok) {
+        throw new Error('Failed to fetch music recommendations');
+      }
+
+      const recommendations = await recommendationRes.json();
+      const recommendationLinks = recommendations.map((rec) => rec.spotify_link);
+      setMusicRecommendations(recommendationLinks);
+      setMusicReasons(recommendations.map((rec) => rec.reason)); // Set reasons for the recommendations
+
+      // Then, create the diary entry including the music recommendations
+      const res = await fetch('/api/diary', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ title, content, weather, musicRecommendations: recommendationLinks }),
+      });
+
+      if (!res.ok) {
+        throw new Error('Failed to create diary entry');
+      }
+
+      const newDiary = await res.json();
+      setDiaries((prevDiaries) => [newDiary, ...prevDiaries]); // Add the new diary to the list
+      setTitle('');
+      setContent('');
+      setCurrentPage(1); // Always go to the first page when adding a new diary
+    } catch (error) {
+      console.error('Error submitting diary:', error);
+    }
   };
 
   const handleDelete = async (index) => {
@@ -112,13 +126,13 @@ export default function Home() {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ id: diaryToDelete._id }),
+      body: JSON.stringify({ title, content, weather, musicRecommendations: recommendationLinks }),
     });
-
-    if (res.ok) {
-      setDiaries((prevDiaries) => prevDiaries.filter((diary) => diary._id !== diaryToDelete._id));
-    } else {
-      console.error('Failed to delete diary');
-    }
+    const newDiary = await res.json();
+    setDiaries((prevDiaries) => [newDiary, ...prevDiaries]); // Add the new diary to the list
+    setTitle('');
+    setContent('');
+    setCurrentPage(1); // Always go to the first page when adding a new diary
   };
 
   const handlePageChange = (pageNumber) => {

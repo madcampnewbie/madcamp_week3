@@ -17,7 +17,7 @@ export default function SignIn() {
   };
 
   return (
-    <div>
+    <div className="signin-container">
       <h1>Sign In</h1>
       {error && <p style={{ color: 'red' }}>{error}</p>}
       <button onClick={handleSignIn}>Sign in with Spotify</button>

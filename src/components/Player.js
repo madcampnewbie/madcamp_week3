@@ -95,7 +95,7 @@ const Player = ({ token, playlist }) => {
     setCurrentTrackIndex((prevIndex) => (prevIndex + 1) % playlist.length);
   };
 
-  if (!player) return null;
+  if (!player) return <p>Loading player...</p>;
 
   return (
     <div style={playerContainerStyle}>
