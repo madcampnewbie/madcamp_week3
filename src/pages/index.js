@@ -2,6 +2,7 @@ import { useSession, signIn } from 'next-auth/react';
 import { useEffect, useState } from 'react';
 import { fetchWeather } from '../libs/weather';
 import Player from '../components/Player';
+import he from 'he';
 const addFontFace = () => {
   const fontFace1 = `
     @font-face {
