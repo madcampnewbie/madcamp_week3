@@ -2,6 +2,8 @@ import { useSession, signIn } from 'next-auth/react';
 import { useEffect, useState } from 'react';
 import { fetchWeather } from '../libs/weather';
 import Player from '../components/Player';
+import axios from 'axios';
+import he from 'he';
 
 export default function Home() {
   const { data: session, status } = useSession();
@@ -15,12 +17,13 @@ export default function Home() {
   const [news, setNews] = useState({});
   const [isNewsVisible, setIsNewsVisible] = useState(false);
   const [expandedDiaryIndex, setExpandedDiaryIndex] = useState(null); // Track expanded diary
+  const [isLoading, setIsLoading] = useState(false); // Track loading state
 
   const topNavBarHeight = '80px'; // Adjust this value according to the actual height of your top navigation bar
 
   const WeatherIcon = ({ iconCode, description }) => {
     const iconUrl = `http://openweathermap.org/img/wn/${iconCode}.png`;
-    return <img src={iconUrl} alt={description} />;
+    return <img src={iconUrl} alt={description} style={weatherIconStyle} />;
   };
 
   const stripHtmlTags = (text) => {
@@ -74,6 +77,7 @@ export default function Home() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsLoading(true); // Set loading state
 
     try {
       // Fetch music recommendations first
@@ -91,8 +95,8 @@ export default function Home() {
 
       const recommendations = await recommendationRes.json();
       const recommendationLinks = recommendations.map((rec) => rec.spotify_link);
-      setMusicRecommendations(recommendationLinks);
-      setMusicReasons(recommendations.map((rec) => rec.reason)); // Set reasons for the recommendations
+      setMusicReasons(recommendations.map((rec) => he.decode(rec.reason))); // Set reasons for the recommendations
+      setMusicRecommendations(recommendationLinks); // Set music recommendations
 
       // Then, create the diary entry including the music recommendations
       const res = await fetch('/api/diary', {
@@ -114,6 +118,8 @@ export default function Home() {
       setCurrentPage(1); // Always go to the first page when adding a new diary
     } catch (error) {
       console.error('Error submitting diary:', error);
+    } finally {
+      setIsLoading(false); // Reset loading state
     }
   };
 
@@ -126,13 +132,13 @@ export default function Home() {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ id: diaryToDelete._id }),
-      body: JSON.stringify({ title, content, weather, musicRecommendations: recommendationLinks }),
     });
-    const newDiary = await res.json();
-    setDiaries((prevDiaries) => [newDiary, ...prevDiaries]); // Add the new diary to the list
-    setTitle('');
-    setContent('');
-    setCurrentPage(1); // Always go to the first page when adding a new diary
+
+    if (res.ok) {
+      setDiaries((prevDiaries) => prevDiaries.filter((diary) => diary._id !== diaryToDelete._id));
+    } else {
+      console.error('Failed to delete diary');
+    }
   };
 
   const handlePageChange = (pageNumber) => {
@@ -155,16 +161,14 @@ export default function Home() {
       >
         News 보기
       </button>
-      {musicRecommendations.length > 0 && (
-        <div style={musicPlayerContainerStyle}>
-          <h2>Music Recommendations</h2>
-          <Player token={session?.accessToken} playlist={musicRecommendations} />
-          <div style={musicReasonsStyle}>
-            {musicReasons.map((reason, index) => (
-              <p key={index}>{`Recommendation ${index + 1}: ${reason}`}</p>
-            ))}
-          </div>
+      {isLoading && (
+        <div style={loadingContainerStyle}>
+          <div style={loadingIconStyle}></div>
+          <p style={loadingTextStyle}>AI가 음악을 추천 중...</p>
         </div>
+      )}
+      {!isLoading && musicRecommendations.length > 0 && (
+        <Player token={session?.accessToken} playlist={musicRecommendations} reasons={musicReasons} />
       )}
       <main style={mainStyle}>
         <h1 style={headingStyle}>산들바람</h1>
@@ -213,12 +217,21 @@ export default function Home() {
                   }}>
                     {diary.content}
                   </p>
-                  {diary.weather && (
-                    <div style={weatherInDiaryStyle}>
-                      <WeatherIcon iconCode={diary.weather.weather[0].icon} description={diary.weather.weather[0].description} />
-                      <p>온도: {Math.round(diary.weather.main.temp)}°C</p>
-                    </div>
-                  )}
+                  <div style={weatherAndMusicStyle}>
+                    {diary.weather && (
+                      <div style={weatherInDiaryStyle}>
+                        <WeatherIcon iconCode={diary.weather.weather[0].icon} description={diary.weather.weather[0].description} />
+                        <p>온도: {Math.round(diary.weather.main.temp)}°C</p>
+                      </div>
+                    )}
+                    {diary.musicRecommendations && (
+                      <div style={musicContainerStyle}>
+                        {diary.musicRecommendations.map((music, musicIndex) => (
+                          <TrackDetail key={musicIndex} trackId={music} accessToken={session?.accessToken} />
+                        ))}
+                      </div>
+                    )}
+                  </div>
                   <small style={diaryDateStyle}>{new Date(diary.date).toLocaleString('default', {
                     year: 'numeric',
                     month: '2-digit',
@@ -274,9 +287,52 @@ export default function Home() {
           <p>No news available</p>
         )}
       </aside>
+      <style jsx global>{`
+        @keyframes spin {
+          0% {
+            transform: rotate(0deg);
+          }
+          100% {
+            transform: rotate(360deg);
+          }
+        }
+      `}</style>
     </div>
   );
 }
+
+const TrackDetail = ({ trackId, accessToken }) => {
+  const [trackDetails, setTrackDetails] = useState(null);
+
+  useEffect(() => {
+    const fetchTrackDetails = async () => {
+      try {
+        const response = await fetch(`https://api.spotify.com/v1/tracks/${trackId}`, {
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+          },
+        });
+        const data = await response.json();
+        setTrackDetails(data);
+      } catch (error) {
+        console.error('Error fetching track details:', error);
+      }
+    };
+
+    fetchTrackDetails();
+  }, [trackId, accessToken]);
+
+  if (!trackDetails || !trackDetails.album || !trackDetails.album.images) {
+    return <p>Loading track details...</p>;
+  }
+
+  return (
+    <div style={musicItemStyle}>
+      <img src={trackDetails.album.images[0].url} alt={trackDetails.name} style={musicImageStyle} />
+      <p style={musicNameStyle}>{trackDetails.name}</p>
+    </div>
+  );
+};
 
 const topNavBarHeight = '80px'; // Ensure topNavBarHeight is defined here
 
@@ -289,18 +345,36 @@ const containerStyle = {
   position: 'relative',
 };
 
-const musicPlayerContainerStyle = {
+const loadingContainerStyle = {
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  justifyContent: 'center',
   position: 'fixed',
-  top: topNavBarHeight,
-  left: '1rem',
+  top: '80px', // Adjust based on your layout
+  left: '120px', // Adjusted to move right
   width: '300px',
-  height: '300px', // Square box
-  padding: '1rem',
+  height: '300px',
   backgroundColor: '#fff',
   border: '1px solid #ccc',
-  boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)',
-  overflowY: 'auto',
-  zIndex: 1000, // Ensure it stays above other content
+  borderRadius: '8px',
+  boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+  zIndex: 1000,
+};
+
+const loadingIconStyle = {
+  width: '50px',
+  height: '50px',
+  border: '5px solid #ccc',
+  borderTop: '5px solid #0070f3',
+  borderRadius: '50%',
+  animation: 'spin 2s linear infinite',
+};
+
+const loadingTextStyle = {
+  marginTop: '10px',
+  fontSize: '1rem',
+  color: '#0070f3',
 };
 
 const musicReasonsStyle = {
@@ -420,12 +494,51 @@ const diaryContentStyle = {
   whiteSpace: 'normal',
 };
 
+const weatherAndMusicStyle = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '1rem',
+};
+
 const weatherInDiaryStyle = {
   margin: '0 0 0.5rem 0',
   padding: '0.5rem',
   borderRadius: '4px',
   backgroundColor: '#f0f0f0',
   display: 'flex',
+  flexDirection: 'column',
+};
+
+const weatherIconStyle = {
+  width: '50px', // Adjust the size as needed
+  height: '50px', // Adjust the size as needed
+};
+
+const musicContainerStyle = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '1rem',
+};
+
+const musicItemStyle = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: '1rem',
+  backgroundColor: '#f8f8f8',
+  padding: '0.5rem',
+  borderRadius: '4px',
+};
+
+const musicImageStyle = {
+  width: '50px',
+  height: '50px',
+  borderRadius: '4px',
+};
+
+const musicNameStyle = {
+  margin: 0,
+  fontSize: '1rem',
+  color: '#333',
 };
 
 const diaryDateStyle = {

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
+import axios from 'axios';
 
-const Player = ({ token, playlist }) => {
+const Player = ({ token, playlist, reasons }) => {
   const [player, setPlayer] = useState(null);
   const [isPaused, setIsPaused] = useState(true);
   const [currentTrack, setCurrentTrack] = useState(null);
@@ -8,6 +9,8 @@ const Player = ({ token, playlist }) => {
   const [deviceId, setDeviceId] = useState(null);
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [isExpanded, setIsExpanded] = useState(true);
+  const [translatedReasons, setTranslatedReasons] = useState([]);
 
   useEffect(() => {
     if (!token) {
@@ -36,7 +39,11 @@ const Player = ({ token, playlist }) => {
 
         spotifyPlayer.addListener('player_state_changed', state => {
           if (state) {
-            setCurrentTrack(state.track_window.current_track);
+            setCurrentTrack({
+              name: state.track_window.current_track?.name || '',
+              artists: state.track_window.current_track?.artists || [],
+              imageUrl: state.track_window.current_track?.album?.images[0]?.url || '', // Track image URL
+            });
             setIsPaused(state.paused);
             setProgress(state.position);
             setDuration(state.duration);
@@ -69,6 +76,55 @@ const Player = ({ token, playlist }) => {
     }
   }, [currentTrackIndex, player, deviceId, playlist]);
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (!isPaused) {
+        player.getCurrentState().then(state => {
+          if (state) {
+            setProgress(state.position);
+          }
+        });
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [isPaused, player]);
+
+  useEffect(() => {
+    const translateReasons = async () => {
+      const translated = await Promise.all(reasons.map(reason => translate(reason)));
+      setTranslatedReasons(translated);
+    };
+
+    translateReasons();
+  }, [reasons]);
+
+  const decodeHTML = (html) => {
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    return doc.documentElement.textContent;
+  };
+
+  const translate = async (text, targetLang = 'ko') => {
+    const apiKey = 'AIzaSyCNvfmrsSLKfTMMIDNk8oLkFUUoFmGUWXY';
+    const url = 'https://translation.googleapis.com/language/translate/v2';
+
+    try {
+      const response = await axios.post(url, null, {
+        params: {
+          q: text,
+          target: targetLang,
+          key: apiKey,
+        },
+      });
+
+      const translatedText = response.data.data.translations[0].translatedText;
+      return decodeHTML(translatedText);
+    } catch (error) {
+      console.error('Error translating text:', error);
+      return text; // 원본 텍스트를 반환
+    }
+  };
+
   const playSong = async (spotifyUri, deviceId) => {
     try {
       const response = await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`, {
@@ -95,23 +151,49 @@ const Player = ({ token, playlist }) => {
     setCurrentTrackIndex((prevIndex) => (prevIndex + 1) % playlist.length);
   };
 
+  const playPrevTrack = () => {
+    setCurrentTrackIndex((prevIndex) => (prevIndex - 1 + playlist.length) % playlist.length);
+  };
+
+  const handleProgressChange = (event) => {
+    const newPosition = (event.target.value / 100) * duration;
+    player.seek(newPosition).then(() => {
+      setProgress(newPosition);
+    });
+  };
+
+  const toggleExpansion = () => {
+    setIsExpanded(!isExpanded);
+  };
+
   if (!player) return <p>Loading player...</p>;
 
   return (
     <div style={playerContainerStyle}>
-      {currentTrack && (
+      <p onClick={toggleExpansion} style={toggleTextStyle}>
+        {isExpanded ? '간략히^' : '확대v'}
+      </p>
+      {currentTrack && isExpanded && (
         <div style={trackInfoStyle}>
+          <img src={currentTrack.imageUrl} alt={currentTrack.name} style={trackImageStyle} />
           <p style={trackNameStyle}>{currentTrack.name}</p>
-          <p style={artistNameStyle}>{currentTrack.artists[0].name}</p>
+          <p style={artistNameStyle}>{currentTrack.artists.map(artist => artist.name).join(', ')}</p>
         </div>
       )}
-      <div style={progressBarContainerStyle}>
-        <div style={{ ...progressBarStyle, width: `${(progress / duration) * 100}%` }}></div>
+      <input
+        type="range"
+        value={(progress / duration) * 100}
+        onChange={handleProgressChange}
+        style={progressBarStyle}
+      />
+      <div style={buttonContainerStyle}>
+        <button onClick={playPrevTrack} style={controlButtonStyle}>Prev</button>
+        <button onClick={() => player.togglePlay()} style={controlButtonStyle}>
+          {isPaused ? 'Play' : 'Pause'}
+        </button>
+        <button onClick={playNextTrack} style={controlButtonStyle}>Next</button>
       </div>
-      <button onClick={() => player.togglePlay()} style={playButtonStyle}>
-        {isPaused ? 'Play' : 'Pause'}
-      </button>
-      <button onClick={playNextTrack} style={nextButtonStyle}>Next</button>
+      {translatedReasons.length > 0 && <p style={reasonTextStyle}>{translatedReasons[currentTrackIndex]}</p>}
     </div>
   );
 };
@@ -125,7 +207,17 @@ const playerContainerStyle = {
   borderRadius: '8px',
   boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
   maxWidth: '300px',
-  margin: '1rem auto',
+  margin: '1rem',
+  position: 'fixed', // 고정 위치로 설정
+  top: '80px', // 원하는 위치로 조정
+  left: '120px', // 원하는 위치로 조정
+};
+
+const toggleTextStyle = {
+  cursor: 'pointer',
+  textDecoration: 'underline',
+  color: '#1db954',
+  marginBottom: '1rem',
 };
 
 const trackInfoStyle = {
@@ -145,39 +237,39 @@ const artistNameStyle = {
   color: '#ccc',
 };
 
-const progressBarContainerStyle = {
+const trackImageStyle = {
   width: '100%',
-  height: '10px',
-  backgroundColor: '#444',
-  borderRadius: '5px',
-  overflow: 'hidden',
+  height: 'auto',
+  borderRadius: '8px',
   marginBottom: '1rem',
 };
 
 const progressBarStyle = {
-  height: '100%',
-  backgroundColor: '#1db954',
+  width: '100%',
+  marginBottom: '1rem',
 };
 
-const playButtonStyle = {
-  padding: '0.75rem 1.5rem',
-  border: 'none',
-  borderRadius: '50%',
-  backgroundColor: '#1db954',
-  color: '#fff',
-  cursor: 'pointer',
-  marginBottom: '0.5rem',
-  boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
+const buttonContainerStyle = {
+  display: 'flex',
+  justifyContent: 'space-between',
+  width: '100%',
 };
 
-const nextButtonStyle = {
-  padding: '0.5rem 1rem',
+const controlButtonStyle = {
+  padding: '0.75rem 1rem',
   border: 'none',
   borderRadius: '4px',
-  backgroundColor: '#5352ed',
+  backgroundColor: '#1db954',
   color: '#fff',
   cursor: 'pointer',
   boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
+};
+
+const reasonTextStyle = {
+  marginTop: '1rem',
+  fontSize: '0.9rem',
+  color: '#fff',
+  textAlign: 'center',
 };
 
 export default Player;
