@@ -46,7 +46,7 @@ export default function Home() {
       .catch((error) => console.error('Error fetching news:', error));
 
     // Fetch diary data
-    fetch('/api/diaries')
+    fetch('/api/diary')
       .then((response) => response.json())
       .then((data) => setDiaries(data.reverse())) // 데이터를 역순으로 정렬하여 설정
       .catch((error) => console.error('Error fetching diaries:', error));
@@ -68,19 +68,8 @@ export default function Home() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const res = await fetch('/api/diary', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ title, content, weather }),
-    });
-    const newDiary = await res.json();
-    setDiaries((prevDiaries) => [newDiary, ...prevDiaries]); // 새로운 일기를 배열 앞에 추가
-    setTitle('');
-    setContent('');
-    setCurrentPage(1); // 새로운 일기를 추가할 때 항상 첫 페이지로 이동
-
+  
+    // Fetch music recommendations first
     const recommendationRes = await fetch('/api/recommend', {
       method: 'POST',
       headers: {
@@ -89,7 +78,21 @@ export default function Home() {
       body: JSON.stringify({ diary_entry: content, genre: genres.join(', ') || 'hip-hop' }),
     });
     const recommendations = await recommendationRes.json();
-    setMusicRecommendations(recommendations.map((rec) => rec.spotify_link));
+    const recommendationLinks = recommendations.map((rec) => rec.spotify_link);
+  
+    // Then, create the diary entry including the music recommendations
+    const res = await fetch('/api/diary', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ title, content, weather, musicRecommendations: recommendationLinks }),
+    });
+    const newDiary = await res.json();
+    setDiaries((prevDiaries) => [newDiary, ...prevDiaries]); // Add the new diary to the list
+    setTitle('');
+    setContent('');
+    setCurrentPage(1); // Always go to the first page when adding a new diary
   };
 
   const handleDelete = async (index) => {
@@ -133,7 +136,7 @@ export default function Home() {
             {weather && (
               <div style={weatherStyle}>
                 <WeatherIcon iconCode={weather.weather[0].icon} description={weather.weather[0].description} />
-                <p>Temperature: {weather.main.temp}°C</p>
+                <p>현재 온도: {Math.round(weather.main.temp)}°C</p>
               </div>
             )}
             <form onSubmit={handleSubmit} style={formStyle}>
@@ -168,10 +171,16 @@ export default function Home() {
                   {diary.weather && (
                     <div style={weatherInDiaryStyle}>
                       <WeatherIcon iconCode={diary.weather.weather[0].icon} description={diary.weather.weather[0].description} />
-                      <p>Temperature: {diary.weather.main.temp}°C</p>
+                      <p>온도: {Math.round(diary.weather.main.temp)}°C</p>
                     </div>
                   )}
-                  <small style={diaryDateStyle}>{new Date(diary.date).toLocaleString()}</small>
+                  <small style={diaryDateStyle}>{new Date(diary.date).toLocaleString('default', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}</small>
                 </li>
               ))}
             </ul>
@@ -382,6 +391,7 @@ const weatherInDiaryStyle = {
   padding: '0.5rem',
   borderRadius: '4px',
   backgroundColor: '#f0f0f0',
+  display: 'flex',
 };
 
 const diaryDateStyle = {

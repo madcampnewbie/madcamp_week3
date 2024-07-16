@@ -1,17 +1,34 @@
 import { signIn, signOut, useSession } from 'next-auth/react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 
 export default function Navbar() {
   const { data: session, status } = useSession();
+  const [genres, setGenres] = useState([]);
+  const router = useRouter();
 
-  if (status === 'loading') {
-    return <p>Loading...</p>;
-  }
+  useEffect(() => {
+    const fetchGenres = async () => {
+      if (status === 'authenticated') {
+        try {
+          const response = await fetch('/api/user-genres');
+          const data = await response.json();
+          setGenres(data.genres || []);
+        } catch (error) {
+          console.error('Error fetching user genres:', error);
+        }
+      }
+    };
+
+    fetchGenres();
+  }, [status, router.asPath]);
 
   return (
     <nav style={navStyle}>
       <div style={linkContainerStyle}>
       <Link href="/genres" style={linkStyle}>Genre Selection</Link>
+      <span>{genres.join(', ')}</span>
       </div>
       <div style={buttonContainerStyle}>
         {!session && (

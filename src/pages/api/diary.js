@@ -22,15 +22,16 @@ export default async (req, res) => {
       res.status(500).json({ message: 'Failed to fetch diaries', error: error.message });
     }
   } else if (req.method === 'POST') {
-    const { title, content, weather } = req.body;
+    const { title, content, weather, musicRecommendations } = req.body;
     if (!title || !content) {
-      res.status(400).json({ message: 'Title and content are required' });
+      res.status(400).json({ message: '제목과 내용은 필수입니다' });
       return;
     }
     const newDiary = {
       title,
       content,
       weather,
+      musicRecommendations,
       userId: token.user.id,
       date: new Date(),
     };
@@ -39,7 +40,7 @@ export default async (req, res) => {
       const insertedDiary = await db.collection('diaries').findOne({ _id: result.insertedId });
       res.status(201).json(insertedDiary);
     } catch (error) {
-      res.status(500).json({ message: 'Failed to create diary', error: error.message });
+      res.status(500).json({ message: '일기 생성 실패!', error: error.message });
     }
   } else if (req.method === 'DELETE') {
     const { id } = req.body;
