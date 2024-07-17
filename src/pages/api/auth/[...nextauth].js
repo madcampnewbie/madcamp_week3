@@ -85,10 +85,6 @@ export default NextAuth({
       session.accessToken = token.accessToken;
       session.error = token.error;
 
-      session.user = token.user;
-      session.accessToken = token.accessToken;
-      session.error = token.error;
-
       return session;
     },
     async signIn({ user, account, profile }) {
