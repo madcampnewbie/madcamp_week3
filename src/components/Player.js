@@ -169,9 +169,9 @@ const Player = ({ token, playlist, reasons }) => {
   if (!player) return <p>Loading player...</p>;
 
   return (
-    <div style={playerContainerStyle}>
+    <div style={{ ...playerContainerStyle, width: isExpanded ? '300px' : '300px' }}>
       <p onClick={toggleExpansion} style={toggleTextStyle}>
-        {isExpanded ? '간략히^' : '확대v'}
+        <img src={isExpanded ? '/greenup.png' : '/greendown.png'} alt="toggle" style={toggleImageStyle} />
       </p>
       {currentTrack && isExpanded && (
         <div style={trackInfoStyle}>
@@ -187,11 +187,19 @@ const Player = ({ token, playlist, reasons }) => {
         style={progressBarStyle}
       />
       <div style={buttonContainerStyle}>
-        <button onClick={playPrevTrack} style={controlButtonStyle}>Prev</button>
-        <button onClick={() => player.togglePlay()} style={controlButtonStyle}>
-          {isPaused ? 'Play' : 'Pause'}
+        <button onClick={playPrevTrack} style={controlButtonStyle}>
+          <img src="/left.png" alt="prev" style={leftIconStyle} />
         </button>
-        <button onClick={playNextTrack} style={controlButtonStyle}>Next</button>
+        <button onClick={() => player.togglePlay()} style={controlButtonStyle}>
+          <img
+            src={isPaused ? '/greenplay.png' : '/greenpause.png'}
+            alt={isPaused ? 'Play' : 'Pause'}
+            style={{ width: '40px', height: '40px' }}
+          />
+        </button>
+        <button onClick={playNextTrack} style={controlButtonStyle}>
+          <img src="/right.png" alt="next" style={rightIconStyle} />
+        </button>
       </div>
       {translatedReasons.length > 0 && <p style={reasonTextStyle}>{translatedReasons[currentTrackIndex]}</p>}
     </div>
@@ -209,15 +217,34 @@ const playerContainerStyle = {
   maxWidth: '300px',
   margin: '1rem',
   position: 'fixed', // 고정 위치로 설정
-  top: '80px', // 원하는 위치로 조정
+  top: '100px', // 원하는 위치로 조정
   left: '120px', // 원하는 위치로 조정
+};
+
+const leftIconStyle = {
+  width: '40px',
+  height: '40px',
+};
+
+const rightIconStyle = {
+  width: '40px',
+  height: '40px',
+};
+
+const toggleImageStyle = {
+  width: '40px',
+  height: '40px',
 };
 
 const toggleTextStyle = {
   cursor: 'pointer',
   textDecoration: 'underline',
-  color: '#fff',
-  marginBottom: '1rem',
+  color: '#1db954',
+  marginTop: '0.1rem', // 여백 줄이기
+  marginBottom: '0.5rem', // 여백 줄이기
+  display: 'flex', // 버튼 크기 줄이기 위해 flex 사용
+  justifyContent: 'center', // 중앙 정렬
+  alignItems: 'center', // 중앙 정렬
 };
 
 const trackInfoStyle = {
@@ -256,13 +283,9 @@ const buttonContainerStyle = {
 };
 
 const controlButtonStyle = {
-  padding: '0.75rem 1rem',
+  background: 'none',
   border: 'none',
-  borderRadius: '4px',
-  backgroundColor: '#1db954',
-  color: '#fff',
   cursor: 'pointer',
-  boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
 };
 
 const reasonTextStyle = {

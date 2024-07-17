@@ -40,6 +40,7 @@ export default function Home() {
   const [isNewsVisible, setIsNewsVisible] = useState(false);
   const [expandedDiaryIndex, setExpandedDiaryIndex] = useState(null); // Track expanded diary
   const [isLoading, setIsLoading] = useState(false); // Track loading state
+  const [currentPlaylist, setCurrentPlaylist] = useState([]);
 
   const topNavBarHeight = '80px'; // Adjust this value according to the actual height of your top navigation bar
 
@@ -121,6 +122,8 @@ export default function Home() {
       setMusicReasons(recommendations.map((rec) => he.decode(rec.reason))); // Set reasons for the recommendations
       setMusicRecommendations(recommendationLinks); // Set music recommendations
 
+      handlePlayMusic(recommendationLinks);
+
       // Then, create the diary entry including the music recommendations
       const res = await fetch('/api/diary', {
         method: 'POST',
@@ -172,27 +175,35 @@ export default function Home() {
     setExpandedDiaryIndex(expandedDiaryIndex === index ? null : index);
   };
 
+  const handlePlayMusic = (playlist) => {
+    setCurrentPlaylist(playlist);
+  };
+  
+
   if (status === 'loading') {
     return <p>Loading...</p>;
   }
 
   return (
     <div style={containerStyle}>
-      <button
-        onClick={() => setIsNewsVisible(!isNewsVisible)}
-        style={{ ...newsButtonStyle, display: isNewsVisible ? 'none' : 'block' }}
-      >
-        News 보기
-      </button>
+      {!isNewsVisible && (
+        <button
+          onClick={() => setIsNewsVisible(true)}
+          style={newsButtonStyle}
+        >
+          <img src="/newsw.png" alt="news" style={newsIconStyle} />
+          <span style={newsTextStyle}>뉴스 보기</span>
+        </button>
+      )}
       {isLoading && (
         <div style={loadingContainerStyle}>
           <div style={loadingIconStyle}></div>
           <p style={loadingTextStyle}>AI가 음악을 추천 중...</p>
         </div>
       )}
-      {!isLoading && musicRecommendations.length > 0 && (
-        <Player token={session?.accessToken} playlist={musicRecommendations} reasons={musicReasons} />
-      )}
+        {!isLoading && currentPlaylist.length > 0 && (
+          <Player token={session?.accessToken} playlist={currentPlaylist} reasons={musicReasons} />
+        )}
       <main style={mainStyle}>
         {status === 'authenticated' && (
           <>
@@ -205,7 +216,7 @@ export default function Home() {
             <form onSubmit={handleSubmit} style={formStyle}>
               <input
                 type="text"
-                placeholder="Title"
+                placeholder="제목을 입력하시오"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 required
@@ -213,22 +224,27 @@ export default function Home() {
               />
               <textarea
                 className="textarea-notebook"
-                placeholder="Content"
+                placeholder="내용을 입력하시오"
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 required
                 style={textareaStyle}
               ></textarea>
-              <button type="submit" style={submitButtonStyle}>Add Diary</button>
+              <button type="submit" style={submitButtonStyle}>일기 저장!</button>
             </form>
             <ul style={diaryListStyle}>
               {currentDiaries.map((diary, index) => (
                 <li key={index} style={diaryItemStyle} onClick={() => toggleDiaryExpansion(index)}>
                   <div style={diaryHeaderStyle}>
                     <h2 style={diaryTitleStyle}>{diary.title}</h2>
-                    <button onClick={(e) => { e.stopPropagation(); handleDelete(index); }} style={deleteButtonStyle}>
-                      <img src="/trash.png" alt="Delete" style={trashIconStyle} />
-                    </button>
+                    <div style={buttonContainerStyle}>
+                      <button onClick={(e) => { e.stopPropagation(); handlePlayMusic(diary.musicRecommendations); }} style={playButtonStyle}>
+                        <img src="/play_black.png" alt="Play" style={playIconStyle} />
+                      </button>                      
+                      <button onClick={(e) => { e.stopPropagation(); handleDelete(index); }} style={deleteButtonStyle}>
+                        <img src="/trash.png" alt="Delete" style={trashIconStyle} />
+                      </button>
+                    </div>
                   </div>
                   <p className={`diary-content ${expandedDiaryIndex === index ? 'expanded' : 'collapsed'}`}>
                     {diary.content}
@@ -238,13 +254,6 @@ export default function Home() {
                       <div style={weatherInDiaryStyle}>
                         <WeatherIcon iconCode={diary.weather.weather[0].icon} description={diary.weather.weather[0].description} />
                         <p>온도: {Math.round(diary.weather.main.temp)}°C</p>
-                      </div>
-                    )}
-                    {diary.musicRecommendations && (
-                      <div style={musicContainerStyle}>
-                        {diary.musicRecommendations.map((music, musicIndex) => (
-                          <TrackDetail key={musicIndex} trackId={music} accessToken={session?.accessToken} />
-                        ))}
                       </div>
                     )}
                   </div>
@@ -280,10 +289,11 @@ export default function Home() {
         )}
       </main>
       <aside style={{ ...newsStyle, top: topNavBarHeight, transform: isNewsVisible ? 'translateX(0)' : 'translateX(100%)' }}>
-        <button onClick={() => setIsNewsVisible(false)} style={newsCloseButtonStyle}>
-          News 접기 &gt;&gt;&gt;
+        <button onClick={() => setIsNewsVisible(false)} style={newsButtonStyle2}>
+          <img src="/newsw.png" alt="news" style={newsIconStyle} />
+          <span style={newsTextStyle}>뉴스 접기</span>
         </button>
-        <h2>Latest News by Category</h2>
+        <h2 style={newsHeaderStyle}>최신 뉴스</h2>
         {Object.keys(news).length > 0 ? (
           Object.keys(news).map((category) => (
             <div key={category} style={newsCategoryStyle}>
@@ -448,34 +458,55 @@ const musicReasonsStyle = {
 };
 
 const newsButtonStyle = {
+  background: '#0070f3', // 파란색 배경
+  border: 'none',
+  cursor: 'pointer',
+
+  margin: '0',
+  zIndex: 10,
+  position: 'absolute',
+  top: '1.8rem',
+  right: '2rem',
+  display: 'flex', // 플렉스박스 사용
+  alignItems: 'center',
+  borderRadius: '4px', // 모서리 둥글게
+};
+const newsButtonStyle2 = {
+  background: '#0070f3', // 파란색 배경
+  border: 'none',
+  cursor: 'pointer',
+
+  margin: '0',
+  zIndex: 10,
   position: 'absolute',
   top: '1.8rem',
   right: '1rem',
-  padding: '0.75rem 1rem',
-  fontSize: '1rem',
-  borderRadius: '4px',
-  border: 'none',
-  backgroundColor: '#0070f3',
-  color: '#fff',
-  cursor: 'pointer',
-  zIndex: 10,
+  display: 'flex', // 플렉스박스 사용
+  alignItems: 'center',
+  borderRadius: '4px', // 모서리 둥글게
 };
 
-const newsCloseButtonStyle = {
-  width: '70%',
-  padding: '0.75rem 1rem',
-  fontSize: '1rem',
-  borderRadius: '4px',
-  border: 'none',
-  backgroundColor: '#0070f3',
+const newsIconStyle = {
+  width: '30px', // 크기 조정
+  height: '30px',
+  marginRight: '0.5rem', // 아이콘과 텍스트 사이의 여백
+};
+
+const newsTextStyle = {
+  fontSize: '1.2rem',
   color: '#fff',
-  cursor: 'pointer',
-  marginBottom: '1rem',
+  fontFamily: 'VITROpride,Arial, sans-serif', // 글꼴 적용
+  fontWeight: 'Bold'
+};
+const newsHeaderStyle = {
+  fontFamily: 'VITRO, Arial, sans-serif',
+  marginBottom: '1rem', // 제목과 버튼 사이의 여백
 };
 
 const newsStyle = {
   position: 'fixed',
   right: 0,
+  top: 0, 
   width: '300px',
   height: `calc(100% - ${topNavBarHeight})`, // Adjust height to account for the top navigation bar
   padding: '1rem',
@@ -486,7 +517,10 @@ const newsStyle = {
   transition: 'transform 0.3s ease-in-out',
   transform: 'translateX(100%)',
   top: topNavBarHeight,
+  position: 'fixed', // 화면 상단에 고정
+  top: 0,
 };
+
 
 const formStyle = {
   display: 'flex',
@@ -500,6 +534,8 @@ const formStyle = {
 };
 
 const inputStyle = {
+  fontFamily: 'VITROpride, Arial, sans-serif',
+  fontWeight: 'Bold',
   padding: '0.5rem',
   fontSize: '1rem',
   borderRadius: '4px',
@@ -507,6 +543,7 @@ const inputStyle = {
 };
 
 const textareaStyle = {
+  fontFamily: 'VITROpride, Arial, sans-serif',
   padding: '0.5rem',
   fontSize: '1rem',
   borderRadius: '4px',
@@ -515,6 +552,8 @@ const textareaStyle = {
 };
 
 const submitButtonStyle = {
+  fontFamily: 'VITROpride, Arial, sans-serif',
+  fontWeight: 'Bold',
   padding: '0.75rem 1rem',
   fontSize: '1rem',
   borderRadius: '4px',
@@ -545,6 +584,7 @@ const diaryHeaderStyle = {
 };
 
 const diaryTitleStyle = {
+  fontFamily: 'VITRO, Arial, sans-serif',
   margin: '0 0 0.5rem 0',
   color: '#0070f3',
 };
@@ -558,11 +598,12 @@ const diaryContentStyle = {
   WebkitBoxOrient: 'vertical',
   WebkitLineClamp: 3, // Number of lines to show before truncating
   whiteSpace: 'normal',
-  fontSize: '1.3rem',
+  fontSize: '1.2rem',
   fontWeight: 'bold',
 };
 
 const weatherAndMusicStyle = {
+  fontWeight: 'bold',
   display: 'flex',
   flexDirection: 'column',
   gap: '1rem',
@@ -574,7 +615,6 @@ const weatherInDiaryStyle = {
   borderRadius: '4px',
   backgroundColor: '#f0f0f0',
   display: 'flex',
-  flexDirection: 'column',
 };
 
 const weatherIconStyle = {
@@ -614,7 +654,19 @@ const diaryDateStyle = {
   fontSize: '0.875rem',
 };
 
+const buttonContainerStyle = {
+  display: 'flex',
+  alignItems: 'center',
+};
+
 const deleteButtonStyle = {
+  background: 'none',
+  border: 'none',
+  cursor: 'pointer',
+};
+
+const playButtonStyle = {
+  
   background: 'none',
   border: 'none',
   cursor: 'pointer',
@@ -624,7 +676,10 @@ const trashIconStyle = {
   width: '20px',
   height: '20px',
 };
-
+const playIconStyle = {
+  width: '20px',
+  height: '20px',
+};
 const paginationStyle = {
   display: 'flex',
   justifyContent: 'center',
@@ -676,6 +731,8 @@ const headingStyle = {
 };
 
 const weatherStyle = {
+  fontFamily: 'VITROpride, Arial, sans-serif',
+  fontWeight: 'bold',
   textAlign: 'center',
   backgroundColor: '#fff',
   padding: '1rem',

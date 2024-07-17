@@ -88,7 +88,7 @@ const Genres = () => {
     <>
       <div style={containerStyle}>
         <main style={mainStyle}>
-          <h1 style={headingStyle}>Select Your Favorite Genres</h1>
+          <h1 style={headingStyle}>당신의 음악 취향을 선택하세요!</h1>
           {status === 'authenticated' && (
             <>
               <ul style={genreListStyle}>
@@ -109,7 +109,7 @@ const Genres = () => {
                   </li>
                 ))}
               </ul>
-              <button onClick={handleSaveGenres} style={saveButtonStyle}>Save Genres</button>
+              <button onClick={handleSaveGenres} style={saveButtonStyle}>장르 저장</button>
             </>
           )}
           {status !== 'authenticated' && (
@@ -146,7 +146,7 @@ const mainStyle = {
 const headingStyle = {
   fontFamily: 'VITRO, Arial, sans-serif',
   textAlign: 'center',
-  color: '#333',
+  color: '#000',
   fontSize: '2rem',
 };
 
