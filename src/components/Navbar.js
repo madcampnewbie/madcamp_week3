@@ -72,6 +72,7 @@ export default function Navbar() {
   );
 }
 const headingStyle = {
+  textAlign: 'center',
   margin: '0 auto',
   color: '#000',
   fontFamily: 'VITRO, Arial, sans-serif',

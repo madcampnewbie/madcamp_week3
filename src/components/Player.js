@@ -216,7 +216,7 @@ const playerContainerStyle = {
 const toggleTextStyle = {
   cursor: 'pointer',
   textDecoration: 'underline',
-  color: '#1db954',
+  color: '#fff',
   marginBottom: '1rem',
 };
 
