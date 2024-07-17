@@ -283,8 +283,8 @@ export default function Home() {
         )}
         {status !== 'authenticated' && (
           <div style={signInContainerStyle}>
-            <p>Please sign in to use the diary app and Spotify player.</p>
-            <button onClick={() => signIn('spotify')} style={signInButtonStyle}>Sign in with Spotify</button>
+            <p>스포티파이로 로그인하세요</p>
+            <button onClick={() => signIn('spotify')} style={signInButtonStyle}>스포티파이로 로그인 하기</button>
           </div>
         )}
       </main>
@@ -716,10 +716,14 @@ const pageNumberStyle = {
 };
 
 const signInContainerStyle = {
+  fontFamily: 'VITROpride, Arial, sans-serif',
+  fontWeight: 'Bold',
   textAlign: 'center',
 };
 
 const signInButtonStyle = {
+  fontFamily: 'VITROpride, Arial, sans-serif',
+  fontWeight: 'Bold',
   padding: '0.75rem 1rem',
   fontSize: '1rem',
   borderRadius: '4px',
