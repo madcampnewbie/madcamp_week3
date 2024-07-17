@@ -41,6 +41,7 @@ export default function Home() {
   const [expandedDiaryIndex, setExpandedDiaryIndex] = useState(null); // Track expanded diary
   const [isLoading, setIsLoading] = useState(false); // Track loading state
   const [currentPlaylist, setCurrentPlaylist] = useState([]);
+  const [isNewDiary, setIsNewDiary] = useState(false); // Track if the playlist is from a new diary
 
   const topNavBarHeight = '80px'; // Adjust this value according to the actual height of your top navigation bar
 
@@ -122,7 +123,7 @@ export default function Home() {
       setMusicReasons(recommendations.map((rec) => he.decode(rec.reason))); // Set reasons for the recommendations
       setMusicRecommendations(recommendationLinks); // Set music recommendations
 
-      handlePlayMusic(recommendationLinks);
+      handlePlayMusic(recommendationLinks, true); // Set isNewDiary to true
 
       // Then, create the diary entry including the music recommendations
       const res = await fetch('/api/diary', {
@@ -175,10 +176,10 @@ export default function Home() {
     setExpandedDiaryIndex(expandedDiaryIndex === index ? null : index);
   };
 
-  const handlePlayMusic = (playlist) => {
+  const handlePlayMusic = (playlist, isNew = false) => {
     setCurrentPlaylist(playlist);
+    setIsNewDiary(isNew);
   };
-  
 
   if (status === 'loading') {
     return <p>Loading...</p>;
@@ -201,9 +202,9 @@ export default function Home() {
           <p style={loadingTextStyle}>AI가 음악을 추천 중...</p>
         </div>
       )}
-        {!isLoading && currentPlaylist.length > 0 && (
-          <Player token={session?.accessToken} playlist={currentPlaylist} reasons={musicReasons} />
-        )}
+      {!isLoading && currentPlaylist.length > 0 && (
+        <Player token={session?.accessToken} playlist={currentPlaylist} reasons={isNewDiary ? musicReasons : []} />
+      )}
       <main style={mainStyle}>
         {status === 'authenticated' && (
           <>
@@ -549,7 +550,7 @@ const inputStyle = {
 
 const textareaStyle = {
   fontFamily: 'VITROpride, Arial, sans-serif',
-  padding: '0.5rem',
+  padding: '0rem 1rem',
   fontSize: '1rem',
   borderRadius: '4px',
   border: '1px solid #ccc',
