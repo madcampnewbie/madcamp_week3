@@ -21,7 +21,6 @@ const addFontFace = () => {
       font-style: normal;
     }
   `;
-  // 새로운 스타일 시트를 생성하고 @font-face 규칙을 추가
   const styleSheet = document.createElement("style");
   styleSheet.type = "text/css";
   styleSheet.innerText = fontFace1 + fontFace2;
@@ -206,7 +205,6 @@ export default function Home() {
           <Player token={session?.accessToken} playlist={currentPlaylist} reasons={musicReasons} />
         )}
       <main style={mainStyle}>
-      
         {status === 'authenticated' && (
           <>
             {weather && (
@@ -248,13 +246,7 @@ export default function Home() {
                       </button>
                     </div>
                   </div>
-                  <p style={{
-                    ...diaryContentStyle,
-                    WebkitLineClamp: expandedDiaryIndex === index ? 'unset' : 3,
-                    whiteSpace: expandedDiaryIndex === index ? 'normal' : 'nowrap',
-                    overflow: expandedDiaryIndex === index ? 'visible' : 'hidden',
-                    textOverflow: expandedDiaryIndex === index ? 'unset' : 'ellipsis',
-                  }}>
+                  <p className={`diary-content ${expandedDiaryIndex === index ? 'expanded' : 'collapsed'}`}>
                     {diary.content}
                   </p>
                   <div style={weatherAndMusicStyle}>
@@ -329,6 +321,51 @@ export default function Home() {
           100% {
             transform: rotate(360deg);
           }
+        }
+
+        .collapsed {
+          display: -webkit-box;
+          -webkit-box-orient: vertical;
+          -webkit-line-clamp: 3;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: normal;
+          font-size: 1rem; /* Default font size for collapsed content */
+          font-weight: normal; /* Default font weight for collapsed content */
+          background-color: transparent; /* Default background for collapsed content */
+          padding: 0; /* No padding for collapsed content */
+          border-radius: 0; /* No border radius for collapsed content */
+          box-shadow: none; /* No box shadow for collapsed content */
+        }
+
+        .expanded {
+            display: block;
+            margin-bottom: 2rem; /* Add some space to separate underline from text */
+            font-size: 1rem; /* Font size for expanded content */
+            font-weight: bold; /* Font weight for expanded content */
+            background-color: #fff; /* Background color for expanded content */
+            padding: 1rem; /* Padding for expanded content */
+            border-radius: 2px; /* Border radius for expanded content */
+            box-shadow: 0 0 0px rgba(0, 0, 0, 0.1); /* Box shadow for expanded content */
+            line-height: 2rem; /* Increase line height to make space for the underline */
+            background: linear-gradient(transparent 98%, #ccc 98%, #ccc 100%) repeat-y; /* Add underline effect */
+            background-size: 100% 2rem; /* Adjust the underline size */
+            background-position: 0 1rem; /* Move background down */
+        }
+
+
+
+        .diary-content {
+          transition: all 0.3s ease-in-out; /* Smooth transition for styles */
+        }
+
+        .textarea-notebook {
+          font-size: 1.3rem;
+          font-weight: bold;
+          background-color: #fff;
+          padding: 1rem;
+          border-radius: 8px;
+          box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
       `}</style>
     </div>
