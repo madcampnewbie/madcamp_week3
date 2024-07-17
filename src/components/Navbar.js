@@ -50,28 +50,36 @@ export default function Navbar() {
   return (
     <nav style={navStyle}>
     <div style={linkContainerStyle}>
-      <Link href="/genres" style={linkStyle}>Genre Selection</Link>
+      <Link href="/genres" style={linkStyle}>장르 선택</Link>
       <span>{genres.join(', ')}</span>
     </div>
-    <h1 style={headingStyle}>산들바람</h1>
+    <div style={headingContainerStyle}>
+      <h1 style={headingStyle}>산들바람</h1>
+    </div>
     <div style={buttonContainerStyle}>
         {!session && (
           <>
-            <button onClick={() => signIn("spotify")} style={buttonStyle}>Sign in</button>
-            <button onClick={() => window.location.href='/auth/signup'} style={buttonStyle}>Sign up</button>
+            <button onClick={() => signIn("spotify")} style={buttonStyle}>로그인</button>
+            <button onClick={() => window.location.href='/auth/signup'} style={buttonStyle}>회원가입</button>
           </>
         )}
         {session && (
           <>
             <span style={welcomeStyle}>Welcome, {session.user?.email || 'User1'}</span>
-            <button onClick={() => signOut()} style={buttonStyle}>Sign out</button>
+            <button onClick={() => signOut()} style={buttonStyle}>로그아웃</button>
           </>
         )}
       </div>
     </nav>
   );
-}
+}const headingContainerStyle = {
+  position: 'absolute',
+  left: '50%',
+  transform: 'translateX(-50%)',
+};
 const headingStyle = {
+  flex: 1,
+  textAlign: 'center',
   margin: '0 auto',
   color: '#000',
   fontFamily: 'VITRO, Arial, sans-serif',
@@ -79,7 +87,7 @@ const headingStyle = {
 };
 const navStyle = {
   fontFamily: 'VITRO, Arial, sans-serif',
-  padding: '1rem',
+  padding: '1.33rem',
   borderBottom: '1px solid #ccc',
   display: 'flex',
   justifyContent: 'space-between',
