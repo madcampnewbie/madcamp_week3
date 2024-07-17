@@ -30,16 +30,10 @@
 - **Authentication**: NextAuth.js
 - **Styling**: Tailwind CSS
 - **SDK**: Spotify Web Playback SDK
-- **API**: Spotify Web API,
-    
-            Gemini API, 
-    
-      Openweathermap API, 
-    
-      Googletranslation API,
-    
-      네이버 검색 API
-    
+- **API**: Spotify Web API, Gemini API, Openweathermap API, Googletranslation API, 네이버 검색 API
+
+![image](https://github.com/user-attachments/assets/f27bdbfb-d905-4cda-a36e-ff60a7af3333)
+
 
 # About
 
@@ -49,7 +43,7 @@
 
 - **스포티파이**로 로그인하도록 유도하는 화면이 뜹니다.
 
-![Untitled](https://prod-files-secure.s3.us-west-2.amazonaws.com/f6cb388f-3934-47d6-9928-26d2e10eb0fc/dba576ac-fb73-449d-92f2-8c0e596d099b/Untitled.png)
+
 
 ## 로그인
 
@@ -57,9 +51,8 @@
 - 로그인을 완료하면 **자신만의 일기**를 기록할 수 있는 탭이 연결됩니다.
 - 스포티파이에서 받아온 유저 정보를 이용해 `Navigation Bar`에 유저의 이메일을 표시합니다.
 
-![Untitled](https://prod-files-secure.s3.us-west-2.amazonaws.com/f6cb388f-3934-47d6-9928-26d2e10eb0fc/185b9c7c-2218-4a11-b737-7ebb101238b0/Untitled.png)
+![image](https://github.com/user-attachments/assets/e8fe8bc1-2ac0-479e-b82d-9afa25fe4a11)
 
-[localhost_3000 - Chrome 2024-07-17 17-44-54.mp4](https://prod-files-secure.s3.us-west-2.amazonaws.com/f6cb388f-3934-47d6-9928-26d2e10eb0fc/c532a9c4-9a71-4ec3-9999-45c665028559/localhost_3000_-_Chrome_2024-07-17_17-44-54.mp4)
 
 ## 장르 선택
 
@@ -67,9 +60,8 @@
 - 여기서 선택된 장르는 `Database`에 저장되어있는 유저 정보를 업데이트하여, 음악 추천을 받을 때 이용합니다.
 - 선택한 장르는 `Navigation Bar`에 항상 표시됩니다.
 
+![image](https://github.com/user-attachments/assets/12844ace-3155-4e00-a9c6-270a747d77ad)
 
-
-![Untitled](https://prod-files-secure.s3.us-west-2.amazonaws.com/f6cb388f-3934-47d6-9928-26d2e10eb0fc/472c0f25-8d0e-4331-9c05-54bc59410c65/Untitled.png)
 
 ## 최신 뉴스
 
@@ -77,9 +69,6 @@
 - 뉴스 제목을 클릭하여 해당 뉴스를 볼 수 있습니다.
 - 뉴스 접기 버튼을 눌러 `Side Bar`를 숨길 수 있습니다.
 
-
-
-https://github.com/user-attachments/assets/3ad563f1-22db-4089-bf2f-f071e56870f9
 
 
 
@@ -90,9 +79,9 @@ https://github.com/user-attachments/assets/3ad563f1-22db-4089-bf2f-f071e56870f9
 - API통신을 통해서 `Next.js`에서 `Flask` 서버로 장르와 일기 내용을 함께 보내면, **Gemini API**를 이용하여  추천하는 음악 3개의 스포티파이 url과 추천 이유를 응답으로 받습니다.
 - 이 때 서버로 보내는 장르는 유저의 정보에 저장되어 있는 장르 리스트를 보냅니다.
 
-![Untitled](https://prod-files-secure.s3.us-west-2.amazonaws.com/f6cb388f-3934-47d6-9928-26d2e10eb0fc/f0da6157-0964-4131-9678-f66183e7665b/Untitled.png)
+![image](https://github.com/user-attachments/assets/877423b2-fb7f-476c-8a11-047be297fb53)
+![image](https://github.com/user-attachments/assets/6aa290e5-5d4f-47df-83c9-c8343096e668)
 
-![Untitled](https://prod-files-secure.s3.us-west-2.amazonaws.com/f6cb388f-3934-47d6-9928-26d2e10eb0fc/f33935df-57e6-497f-970f-e34af107ef53/Untitled.png)
 
 ### 일기 저장
 
@@ -100,9 +89,9 @@ https://github.com/user-attachments/assets/3ad563f1-22db-4089-bf2f-f071e56870f9
 - 여기서 저장되는 날씨는 현재 날씨 정보를 불러옵니다.
 - 일기가 저장이 되면 추천 받은 음악 리스트를 `Player`가 자동으로 재생합니다.
 
-![Untitled](https://prod-files-secure.s3.us-west-2.amazonaws.com/f6cb388f-3934-47d6-9928-26d2e10eb0fc/3403120e-45cb-42da-ad42-09d861401da3/Untitled.png)
+![image](https://github.com/user-attachments/assets/f6c4a3da-1de6-455f-8f16-c0cb1242ab97)
+![image](https://github.com/user-attachments/assets/78c804b1-085b-4bc3-9304-0b5e6ca7132d)
 
-![Untitled](https://prod-files-secure.s3.us-west-2.amazonaws.com/f6cb388f-3934-47d6-9928-26d2e10eb0fc/b406ade2-e042-4799-b146-6c150306d5d1/Untitled.png)
 
 ### 음악 플레이어
 
@@ -112,7 +101,6 @@ https://github.com/user-attachments/assets/3ad563f1-22db-4089-bf2f-f071e56870f9
 - `Player` 하단에는 음악을 추천해준 이유가 표시됩니다.
 - 토글 버튼이 있어, 노래에 해당하는 앨범 커버를 숨기거나 보이게 할 수 있습니다.
 
-[localhost_3000 - Chrome 2024-07-17 19-02-17.mp4](https://prod-files-secure.s3.us-west-2.amazonaws.com/f6cb388f-3934-47d6-9928-26d2e10eb0fc/29d9aae6-f375-4498-805e-7cceae079401/localhost_3000_-_Chrome_2024-07-17_19-02-17.mp4)
 
 ## 일기 꺼내보기
 
@@ -124,4 +112,4 @@ https://github.com/user-attachments/assets/3ad563f1-22db-4089-bf2f-f071e56870f9
 - 일기에 있는 재생 버튼 클릭 시 저장된 음악 리스트가 음악`Player`에서 재생됩니다.
 - 일기에 있는 휴지통 버튼을 클릭 시 저장된 일기가 삭제됩니다.
 
-[localhost_3000 - Chrome 2024-07-17 19-05-24.mp4](https://prod-files-secure.s3.us-west-2.amazonaws.com/f6cb388f-3934-47d6-9928-26d2e10eb0fc/7ed1cb34-4c1a-43c8-9a53-7722d0debaa0/localhost_3000_-_Chrome_2024-07-17_19-05-24.mp4)
+
