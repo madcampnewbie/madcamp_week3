@@ -251,7 +251,7 @@ export default function Home() {
                   </p>
                   <div style={weatherAndMusicStyle}>
                     {diary.weather && (
-                      <div style={weatherInDiaryStyle}>
+                      <div style={weatherInDiaryStyle2}>
                         <WeatherIcon iconCode={diary.weather.weather[0].icon} description={diary.weather.weather[0].description} />
                         <p>온도: {Math.round(diary.weather.main.temp)}°C</p>
                       </div>
@@ -340,7 +340,7 @@ export default function Home() {
 
         .expanded {
             display: block;
-            margin-bottom: 2rem; /* Add some space to separate underline from text */
+            margin-bottom: 0.0rem; /* Add some space to separate underline from text */
             font-size: 1rem; /* Font size for expanded content */
             font-weight: bold; /* Font weight for expanded content */
             background-color: #fff; /* Background color for expanded content */
@@ -534,14 +534,18 @@ const formStyle = {
 };
 
 const inputStyle = {
+  textAlign: 'center',
   fontFamily: 'VITROpride, Arial, sans-serif',
   fontWeight: 'Bold',
-  padding: '0.5rem',
+  padding: '0.5rem 0', // Adjust padding to fit underline style
   fontSize: '1rem',
-  borderRadius: '4px',
-  textAlign: 'center',
-  border: '1px solid #ccc',
+  border: 'none', // Remove border
+  borderBottom: '2px solid #ccc', // Add bottom border
+  outline: 'none', // Remove outline on focus
+  width: '300px', // Ensure it takes the full width
+  boxSizing: 'border-box', // Make sure padding and width are considered
 };
+
 
 const textareaStyle = {
   fontFamily: 'VITROpride, Arial, sans-serif',
@@ -614,7 +618,14 @@ const weatherInDiaryStyle = {
   margin: '0 0 0.5rem 0',
   padding: '0.5rem',
   borderRadius: '4px',
-  backgroundColor: '#f0f0f0',
+  backgroundColor: '#fff',
+  display: 'flex',
+};
+
+const weatherInDiaryStyle2 = {
+
+  borderRadius: '4px',
+  backgroundColor: '#fff',
   display: 'flex',
 };
 
